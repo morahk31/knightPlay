@@ -1,0 +1,206 @@
+:root {
+  --bg: #0f1218;
+  --surface: #171c25;
+  --surface-2: #1f2633;
+  --border: #2c3545;
+  --text: #e6e9ef;
+  --muted: #8b94a7;
+  --accent: #4fc3f7;
+  --gold: #e0b45a;
+  --danger: #e5534b;
+  --ok: #5ac17a;
+  --radius: 8px;
+  color-scheme: dark;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barre du haut */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  margin: 0 0.5rem 0 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+}
+
+.brand span {
+  color: var(--gold);
+}
+
+.topbar select {
+  min-width: 14rem;
+}
+
+.topbar .actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.notice {
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notice.info {
+  background: rgba(90, 193, 122, 0.15);
+  color: var(--ok);
+}
+
+.notice.error {
+  background: rgba(229, 83, 75, 0.15);
+  color: var(--danger);
+}
+
+.banner {
+  margin: 0;
+  padding: 0.5rem 1rem;
+}
+
+.banner.warning {
+  background: rgba(224, 180, 90, 0.15);
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Jauges */
+.gauges {
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Disposition PC : fiche à gauche, actions à droite */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.sheet,
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sheet {
+  min-width: 0;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+}
+
+.tabs button.active {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.tab-panel {
+  padding: 1rem;
+}
+
+.tab-panel h2 {
+  margin-top: 0;
+}
+
+.actions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.card {
+  padding: 0.75rem;
+}
+
+.card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--muted);
+  font-style: italic;
+}

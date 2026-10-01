@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Socle — projet, persistance, gestion des personnages, import et export

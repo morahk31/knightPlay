@@ -1,6 +1,6 @@
 ---
 objective: "Un joueur peut créer, mettre à jour et utiliser en partie, sur PC, la fiche de son chevalier Knight. L'outil calcule tests, attaques, encaissement, énergie et progression selon des règles préremplies et modifiables."
-status: pending
+status: in-progress
 ---
 
 # Plan: KnightPlay — fiche de personnage et calculateur d'actions *Knight*
