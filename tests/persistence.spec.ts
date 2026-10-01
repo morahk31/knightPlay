@@ -8,7 +8,7 @@ import {
   saveState,
   type KeyValueStorage,
 } from '../src/stores/persistence'
-import { DEFAULT_CHARACTER_NAME, useCharactersStore } from '../src/stores/characters'
+import { DEFAULT_CHARACTER_NAME, createCharacter, useCharactersStore } from '../src/stores/characters'
 
 function memoryStorage(): KeyValueStorage & { data: Map<string, string> } {
   const data = new Map<string, string>()
@@ -35,7 +35,7 @@ describe('persistence', () => {
     const storage = memoryStorage()
     const state = {
       version: 1,
-      characters: [{ id: 'a', nom: 'Eraser', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:00:00.000Z' }],
+      characters: [{ ...createCharacter('Eraser'), id: 'a' }],
       activeId: 'a',
     }
     expect(saveState(state, storage)).toBe(true)

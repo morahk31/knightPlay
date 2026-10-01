@@ -1,4 +1,6 @@
 import { DATA_VERSION, type Character } from '../rules/types'
+import { blankSheet } from '../rules/catalog'
+import { defaultRules } from '../config/defaultRules'
 
 /** Clé versionnée du stockage local. */
 export const STORAGE_KEY = 'knightplay.v1'
@@ -51,6 +53,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Fusion récursive : part des valeurs par défaut et ne garde de `raw` que les
+ * valeurs de même nature (nombre fini, chaîne, tableau, objet). Les clés en
+ * trop de `raw` sont conservées (données d'une version ultérieure de l'outil).
+ */
+function mergeDefaults(defaults: unknown, raw: unknown): unknown {
+  if (raw === undefined) return defaults
+  if (typeof defaults === 'number') return typeof raw === 'number' && Number.isFinite(raw) ? raw : defaults
+  if (typeof defaults === 'string') return typeof raw === 'string' ? raw : defaults
+  if (typeof defaults === 'boolean') return typeof raw === 'boolean' ? raw : defaults
+  if (Array.isArray(defaults)) {
+    if (!Array.isArray(raw)) return defaults
+    const sample = defaults[0]
+    return sample === undefined ? raw.filter((v) => typeof v === 'string') : raw
+  }
+  if (isRecord(defaults)) {
+    if (!isRecord(raw)) return defaults
+    const result: Record<string, unknown> = { ...raw }
+    for (const key of Object.keys(defaults)) result[key] = mergeDefaults(defaults[key], raw[key])
+    return result
+  }
+  return raw
+}
+
+/**
  * Complète un personnage partiel ou ancien avec les champs manquants
  * (compatibilité ascendante des données). Renvoie `null` si l'entrée est inexploitable.
  */
@@ -61,7 +87,13 @@ export function normalizeCharacter(raw: unknown): Character | null {
   const nom = typeof raw.nom === 'string' && raw.nom.trim() !== '' ? raw.nom : 'Chevalier sans nom'
   const createdAt = typeof raw.createdAt === 'string' ? raw.createdAt : now
   const updatedAt = typeof raw.updatedAt === 'string' ? raw.updatedAt : createdAt
-  return { ...raw, id, nom, createdAt, updatedAt } as Character
+  const sheet = mergeDefaults(blankSheet(defaultRules), raw) as Record<string, unknown>
+  const overrides = isRecord(raw.overrides)
+    ? Object.fromEntries(
+        Object.entries(raw.overrides).filter(([, v]) => typeof v === 'number' && Number.isFinite(v)),
+      )
+    : {}
+  return { ...sheet, overrides, id, nom, createdAt, updatedAt } as Character
 }
 
 /** Valide et normalise un état lu depuis le stockage. */

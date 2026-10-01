@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import TopBar from './components/TopBar.vue'
+import GaugesBar from './components/GaugesBar.vue'
+import IdentityPanel from './components/sheet/IdentityPanel.vue'
+import AspectsPanel from './components/sheet/AspectsPanel.vue'
+import DerivedPanel from './components/sheet/DerivedPanel.vue'
 import { useCharactersStore } from './stores/characters'
+import type { CaracId } from './rules/types'
 
 const store = useCharactersStore()
 
@@ -16,6 +21,9 @@ const sheetTabs = [
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
 const actionSections = ['Test', 'Attaque', 'Encaisser', 'Modules / Énergie'] as const
+
+/** Caractéristique proposée comme base du prochain test (utilisée en phase 3). */
+const pendingBase = ref<CaracId | null>(null)
 </script>
 
 <template>
@@ -26,9 +34,7 @@ const actionSections = ['Test', 'Attaque', 'Encaisser', 'Modules / Énergie'] as
       {{ store.storageWarning }}
     </p>
 
-    <section class="gauges" aria-label="Jauges" data-testid="zone-gauges">
-      <span class="placeholder">Santé · Armure · Énergie · Espoir · Héroïsme (phase 2)</span>
-    </section>
+    <GaugesBar />
 
     <main class="layout">
       <section class="sheet" aria-label="Fiche du personnage" data-testid="zone-sheet">
@@ -45,7 +51,12 @@ const actionSections = ['Test', 'Attaque', 'Encaisser', 'Modules / Énergie'] as
             {{ tab.label }}
           </button>
         </nav>
-        <div class="tab-panel" role="tabpanel">
+        <div v-if="activeTab === 'identite'" class="tab-panel" role="tabpanel" data-testid="tab-identite">
+          <AspectsPanel @pick-carac="pendingBase = $event" />
+          <DerivedPanel />
+          <IdentityPanel />
+        </div>
+        <div v-else class="tab-panel" role="tabpanel">
           <h2>{{ store.active?.nom }}</h2>
           <p class="placeholder">Contenu de l’onglet à venir.</p>
         </div>

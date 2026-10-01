@@ -6,4 +6,26 @@ import type { RulesConfig } from '../rules/types'
  */
 export const defaultRules: RulesConfig = {
   version: 1,
+  creation: {
+    // Fiche 02, étape 1 (LdB p. 111)
+    aspectDepart: 2,
+    caracDepart: 1,
+  },
+  limites: {
+    // Fiche 02 (LdB p. 79)
+    aspectMax: 9,
+    // Fiche 02, lames du tarot (LdB p. 120)
+    aspectCaps: [
+      { inconvenient: 'Vétéran', aspect: 'all', max: 7 },
+      { inconvenient: 'Brute', aspect: 'machine', max: 5 },
+    ],
+  },
+  derivees: {
+    // Fiche 02, étape 9 (LdB p. 173-174)
+    santeBase: 10,
+    santeParPoint: 6,
+    espoirBase: 50,
+    heroismeMax: 6,
+    odDansDefenseReactionInitiative: true,
+  },
 }

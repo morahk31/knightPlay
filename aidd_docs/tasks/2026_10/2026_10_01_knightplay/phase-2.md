@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Fiche personnage — identité, aspects et caractéristiques, valeurs dérivées, jauges

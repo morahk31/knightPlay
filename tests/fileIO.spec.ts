@@ -3,13 +3,13 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { exportFileName, parseCharacterFile, serializeCharacter } from '../src/services/fileIO'
 import type { Character } from '../src/rules/types'
-import { useCharactersStore } from '../src/stores/characters'
+import { createCharacter, useCharactersStore } from '../src/stores/characters'
 import type { KeyValueStorage } from '../src/stores/persistence'
 import TopBar from '../src/components/TopBar.vue'
 
 const eraser: Character = {
+  ...createCharacter('Silas « Eraser » Shark'),
   id: 'eraser-1',
-  nom: 'Silas « Eraser » Shark',
   createdAt: '2026-10-01T10:00:00.000Z',
   updatedAt: '2026-10-01T11:00:00.000Z',
 }

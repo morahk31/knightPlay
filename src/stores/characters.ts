@@ -1,6 +1,18 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import type { Character } from '../rules/types'
+import type {
+  AspectId,
+  CaracId,
+  Character,
+  DerivedId,
+  DerivedSource,
+  GaugeId,
+  RulesConfig,
+  SourcedDerivedId,
+} from '../rules/types'
+import { blankSheet } from '../rules/catalog'
+import { clampGauges, gaugeTotals } from '../rules/derived'
+import { defaultRules } from '../config/defaultRules'
 import {
   getBrowserStorage,
   loadState,
@@ -15,12 +27,19 @@ export const SAVE_DEBOUNCE_MS = 300
 
 export const DEFAULT_CHARACTER_NAME = 'Nouveau chevalier'
 
-export function createCharacter(nom = DEFAULT_CHARACTER_NAME): Character {
+export function createCharacter(nom = DEFAULT_CHARACTER_NAME, rules: RulesConfig = defaultRules): Character {
   const now = new Date().toISOString()
-  return { id: newId(), nom, createdAt: now, updatedAt: now }
+  return { id: newId(), nom, createdAt: now, updatedAt: now, ...blankSheet(rules) }
+}
+
+/** Entier positif ou nul (les saisies vides ou invalides valent 0). */
+function toNonNegativeInt(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0
 }
 
 export const useCharactersStore = defineStore('characters', () => {
+  /** Règles effectives (remplacées par le store des règles maison en phase 8). */
+  const rules = ref<RulesConfig>(defaultRules)
   const characters = ref<Character[]>([])
   const activeId = ref<string | null>(null)
   const storageWarning = ref<string | null>(null)
@@ -80,7 +99,7 @@ export const useCharactersStore = defineStore('characters', () => {
   }
 
   function create(nom?: string): Character {
-    const character = createCharacter(nom)
+    const character = createCharacter(nom, rules.value)
     characters.value.push(character)
     activeId.value = character.id
     return character
@@ -124,6 +143,75 @@ export const useCharactersStore = defineStore('characters', () => {
     if (characters.value.length === 0) create()
   }
 
+  /** Applique une modification au personnage actif, puis met à jour sa date. */
+  function mutateActive(mutator: (c: Character) => void): void {
+    const character = active.value
+    if (!character) return
+    mutator(character)
+    touch(character)
+  }
+
+  function setAspect(aspect: AspectId, value: number): void {
+    mutateActive((c) => {
+      c.aspects[aspect] = toNonNegativeInt(value)
+    })
+  }
+
+  function setCarac(carac: CaracId, field: 'val' | 'od', value: number): void {
+    mutateActive((c) => {
+      c.caracs[carac][field] = toNonNegativeInt(value)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function setGauge(gauge: GaugeId, actuel: number): void {
+    mutateActive((c) => {
+      c.jauges[gauge].actuel = toNonNegativeInt(actuel)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function adjustGauge(gauge: GaugeId, delta: number): void {
+    const character = active.value
+    if (character) setGauge(gauge, character.jauges[gauge].actuel + delta)
+  }
+
+  /** Total manuel (armure et énergie, avant la phase 4). */
+  function setGaugeTotal(gauge: 'armure' | 'energie', total: number): void {
+    mutateActive((c) => {
+      c.jauges[gauge].total = toNonNegativeInt(total)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function setDerivedSource(id: SourcedDerivedId, source: DerivedSource): void {
+    mutateActive((c) => {
+      c.derivedSource[id] = source
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function setOverride(id: DerivedId, value: number | null): void {
+    mutateActive((c) => {
+      if (value === null || !Number.isFinite(value)) delete c.overrides[id]
+      else c.overrides[id] = toNonNegativeInt(value)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function setBonus(kind: 'sante' | 'espoir', value: number): void {
+    mutateActive((c) => {
+      c.bonus[kind] = Number.isFinite(value) ? Math.trunc(value) : 0
+      clampGauges(c, rules.value)
+    })
+  }
+
+  /** Remet les jauges santé et espoir à leur maximum (repos à Camelot). */
+  function restoreGauge(gauge: GaugeId): void {
+    const character = active.value
+    if (character) setGauge(gauge, gaugeTotals(character, rules.value)[gauge])
+  }
+
   /** Ajoute un personnage importé (déjà validé et normalisé) et le sélectionne. */
   function addImported(character: Character): void {
     characters.value.push(character)
@@ -131,6 +219,7 @@ export const useCharactersStore = defineStore('characters', () => {
   }
 
   return {
+    rules,
     characters,
     activeId,
     active,
@@ -143,5 +232,15 @@ export const useCharactersStore = defineStore('characters', () => {
     duplicate,
     remove,
     addImported,
+    mutateActive,
+    setAspect,
+    setCarac,
+    setGauge,
+    adjustGauge,
+    setGaugeTotal,
+    setDerivedSource,
+    setOverride,
+    setBonus,
+    restoreGauge,
   }
 })
