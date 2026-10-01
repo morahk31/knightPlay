@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Moteur de dés et test de caractéristique (dés virtuels ou réels) et journal

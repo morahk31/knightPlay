@@ -110,5 +110,6 @@ export function blankSheet(rules: RulesConfig): Omit<Character, 'id' | 'nom' | '
     },
     overrides: {},
     bonus: { sante: 0, espoir: 0 },
+    journal: [],
   }
 }

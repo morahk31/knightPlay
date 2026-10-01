@@ -5,6 +5,8 @@ import GaugesBar from './components/GaugesBar.vue'
 import IdentityPanel from './components/sheet/IdentityPanel.vue'
 import AspectsPanel from './components/sheet/AspectsPanel.vue'
 import DerivedPanel from './components/sheet/DerivedPanel.vue'
+import TestPanel from './components/actions/TestPanel.vue'
+import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
 
@@ -20,9 +22,9 @@ const sheetTabs = [
 ] as const
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
-const actionSections = ['Test', 'Attaque', 'Encaisser', 'Modules / Énergie'] as const
+const actionSections = ['Attaque', 'Encaisser', 'Modules / Énergie'] as const
 
-/** Caractéristique proposée comme base du prochain test (utilisée en phase 3). */
+/** Caractéristique proposée comme base du prochain test (clic sur la fiche). */
 const pendingBase = ref<CaracId | null>(null)
 </script>
 
@@ -63,14 +65,12 @@ const pendingBase = ref<CaracId | null>(null)
       </section>
 
       <aside class="actions-panel" aria-label="Actions" data-testid="zone-actions">
+        <TestPanel :pending-base="pendingBase" />
         <section v-for="section in actionSections" :key="section" class="card">
           <h3>{{ section }}</h3>
           <p class="placeholder">À venir.</p>
         </section>
-        <section class="card log" data-testid="zone-log">
-          <h3>Journal</h3>
-          <p class="placeholder">Aucun jet pour l’instant.</p>
-        </section>
+        <LogPanel />
       </aside>
     </main>
   </div>

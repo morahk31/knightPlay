@@ -1,4 +1,4 @@
-import { DATA_VERSION, type Character } from '../rules/types'
+import { DATA_VERSION, type Character, type LogEntry } from '../rules/types'
 import { blankSheet } from '../rules/catalog'
 import { defaultRules } from '../config/defaultRules'
 
@@ -93,7 +93,13 @@ export function normalizeCharacter(raw: unknown): Character | null {
         Object.entries(raw.overrides).filter(([, v]) => typeof v === 'number' && Number.isFinite(v)),
       )
     : {}
-  return { ...sheet, overrides, id, nom, createdAt, updatedAt } as Character
+  const journal = Array.isArray(raw.journal)
+    ? raw.journal.filter(
+        (e): e is LogEntry =>
+          isRecord(e) && typeof e.id === 'string' && typeof e.title === 'string' && typeof e.at === 'string',
+      )
+    : []
+  return { ...sheet, overrides, journal, id, nom, createdAt, updatedAt } as Character
 }
 
 /** Valide et normalise un état lu depuis le stockage. */

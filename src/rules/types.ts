@@ -68,6 +68,19 @@ export interface Motivations {
   mineures: string[]
 }
 
+export type LogOutcome = 'reussite' | 'echec' | 'critique' | 'exploit' | 'info'
+
+/** Entrée du journal des jets et actions. */
+export interface LogEntry {
+  id: string
+  /** Date ISO. */
+  at: string
+  kind: 'test' | 'info'
+  title: string
+  detail: string
+  outcome: LogOutcome
+}
+
 /** Personnage joueur. */
 export interface Character {
   id: string
@@ -89,6 +102,8 @@ export interface Character {
   overrides: Partial<Record<DerivedId, number>>
   /** Bonus permanents aux totaux (ex. Dur à cuir +5 PS, Forteresse spirituelle +5 espoir). */
   bonus: { sante: number; espoir: number }
+  /** Journal des jets et actions (le plus récent en premier). */
+  journal: LogEntry[]
 }
 
 /** Contenu d'un fichier d'export `*.knightplay.json`. */
@@ -106,6 +121,12 @@ export interface AspectCap {
   /** Aspect concerné, ou `all` pour tous les aspects. */
   aspect: AspectId | 'all'
   max: number
+}
+
+/** Niveau de difficulté nommé (fiche 01). */
+export interface DifficultyLevel {
+  label: string
+  value: number
 }
 
 /**
@@ -126,6 +147,18 @@ export interface RulesConfig {
     aspectMax: number
     /** Plafonds imposés par certains inconvénients. */
     aspectCaps: AspectCap[]
+  }
+  systeme: {
+    /** Sous ce nombre de points d'espoir, −1 dé par point manquant (fiche 05). */
+    seuilDesespoir: number
+    /** Niveaux de difficulté nommés (fiche 01). */
+    difficultes: DifficultyLevel[]
+    /** Relance d'exploit quand tous les dés sont pairs (fiche 01). */
+    exploitRelance: boolean
+    /** Règle optionnelle : sacrifier des dés par paires contre des réussites automatiques. */
+    sacrificeDes: boolean
+    /** Nombre maximal d'entrées conservées dans le journal. */
+    journalMax: number
   }
   derivees: {
     /** PS = santeBase + santeParPoint × caractéristique de Chair. */
