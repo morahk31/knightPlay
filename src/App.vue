@@ -6,6 +6,9 @@ import IdentityPanel from './components/sheet/IdentityPanel.vue'
 import AspectsPanel from './components/sheet/AspectsPanel.vue'
 import DerivedPanel from './components/sheet/DerivedPanel.vue'
 import TestPanel from './components/actions/TestPanel.vue'
+import EnergyPanel from './components/actions/EnergyPanel.vue'
+import ArmorPanel from './components/sheet/ArmorPanel.vue'
+import ModulesPanel from './components/sheet/ModulesPanel.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -22,7 +25,7 @@ const sheetTabs = [
 ] as const
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
-const actionSections = ['Attaque', 'Encaisser', 'Modules / Énergie'] as const
+const actionSections = ['Attaque', 'Encaisser'] as const
 
 /** Caractéristique proposée comme base du prochain test (clic sur la fiche). */
 const pendingBase = ref<CaracId | null>(null)
@@ -58,6 +61,12 @@ const pendingBase = ref<CaracId | null>(null)
           <DerivedPanel />
           <IdentityPanel />
         </div>
+        <div v-else-if="activeTab === 'armure'" class="tab-panel" role="tabpanel" data-testid="tab-armure">
+          <ArmorPanel />
+        </div>
+        <div v-else-if="activeTab === 'modules'" class="tab-panel" role="tabpanel" data-testid="tab-modules">
+          <ModulesPanel />
+        </div>
         <div v-else class="tab-panel" role="tabpanel">
           <h2>{{ store.active?.nom }}</h2>
           <p class="placeholder">Contenu de l’onglet à venir.</p>
@@ -70,6 +79,7 @@ const pendingBase = ref<CaracId | null>(null)
           <h3>{{ section }}</h3>
           <p class="placeholder">À venir.</p>
         </section>
+        <EnergyPanel />
         <LogPanel />
       </aside>
     </main>

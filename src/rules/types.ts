@@ -81,6 +81,144 @@ export interface LogEntry {
   outcome: LogOutcome
 }
 
+/** Zones de slots d'une méta-armure. */
+export type SlotZone = 'tete' | 'brasG' | 'brasD' | 'torse' | 'jambeG' | 'jambeD'
+
+export type Slots = Record<SlotZone, number>
+
+export type Disponibilite = 'standard' | 'avance' | 'rare' | 'prestige'
+
+/** Capacité d'une méta-armure (mode Ghost, Shrine…). */
+export interface ArmorCapability {
+  id: string
+  nom: string
+  /** Coût en PE d'une activation standard (bouton « Activer »). `null` si variable ou nul. */
+  cout: number | null
+  /** Coût détaillé, tel qu'écrit dans le référentiel. */
+  energie: string
+  activation: string
+  duree: string
+  effet: string
+}
+
+export interface ArmorEvolution {
+  /** Palier de PG totaux (ou coût en PG pour les évolutions achetées de la Ranger). */
+  pg: number
+  effet: string
+  /** Vrai si l'évolution s'achète au lieu de se débloquer. */
+  achetee?: boolean
+}
+
+/** Modèle de méta-armure du catalogue. */
+export interface ArmorDef {
+  id: string
+  nom: string
+  generation: number
+  pa: number
+  pe: number
+  cdf: number
+  /** OD fournis de base par l'armure. */
+  od: Partial<Record<CaracId, number>>
+  slots: Slots
+  capacites: ArmorCapability[]
+  evolutions: ArmorEvolution[]
+  /** Valeurs extraites de tableaux graphiques : à vérifier dans les règles. */
+  aVerifier: boolean
+  source: string
+  /** Particularités (4ᵉ génération, énergie déficiente…). */
+  notes?: string
+  /** Faux si l'armure ne récupère pas d'énergie au repos (Sorcerer). */
+  rechargeRepos?: boolean
+}
+
+/** Niveau d'un module (1 = achat initial). */
+export interface ModuleLevel {
+  niveau: number
+  pg: number
+  dispo: Disponibilite
+  effet: string
+}
+
+/** Bonus permanents d'un module (améliorations). Valeurs par niveau atteint. */
+export interface ModulePermanent {
+  pa?: number
+  pe?: number
+  cdf?: number
+  /** Slots ajoutés à chaque zone. */
+  slots?: number
+}
+
+/** Module du catalogue. */
+export interface ModuleDef {
+  id: string
+  nom: string
+  categorie: string
+  slots: Partial<Slots>
+  activation: string
+  duree: string
+  /** Coût en PE d'une activation (`null` = aucun ou variable). */
+  energie: number | null
+  energieTexte?: string
+  effet: string
+  niveaux: ModuleLevel[]
+  /** Bonus permanents apportés par niveau (cumulés jusqu'au niveau installé). */
+  permanent?: ModulePermanent
+  source: string
+}
+
+/** Module installé sur l'armure d'un personnage (copie modifiable). */
+export interface InstalledModule {
+  uid: string
+  /** Identifiant du catalogue, ou `null` pour un module personnalisé. */
+  moduleId: string | null
+  nom: string
+  niveau: number
+  slots: Partial<Slots>
+  energie: number | null
+  activation: string
+  duree: string
+  effet: string
+  permanent?: ModulePermanent
+}
+
+/** Méta-armure portée par le personnage (valeurs préremplies depuis le catalogue, modifiables). */
+export interface ArmorState {
+  /** Identifiant du catalogue, `aucune` ou `personnalisee`. */
+  modele: string
+  nom: string
+  generation: number
+  pa: number
+  pe: number
+  cdf: number
+  od: Partial<Record<CaracId, number>>
+  slots: Slots
+  capacites: ArmorCapability[]
+  evolutions: ArmorEvolution[]
+  aVerifier: boolean
+  notes: string
+  /** Faux si l'armure ne récupère pas d'énergie au repos (Sorcerer). */
+  rechargeRepos: boolean
+  /** Déployée ou repliée (la combinaison Guardian prend alors le relais). */
+  etat: 'deployee' | 'repliee'
+  /** PA actuels de la combinaison Guardian. */
+  guardianPa: number
+  /** Type actif de la Warrior (aspect), ou `null`. */
+  warriorType: AspectId | null
+  /** Types de la Warrior disponibles (3 à la création). */
+  warriorTypes: AspectId[]
+  /** Nods restants pour la mission en cours. */
+  nods: { energie: number; armure: number; soin: number }
+}
+
+/** Points d'expérience et de gloire (historique en phase 7). */
+export interface ProgressionState {
+  pxActuel: number
+  pxTotal: number
+  pgSolde: number
+  /** Total de PG gagnés (ne baisse jamais) : débloque l'arsenal et les évolutions. */
+  pgTotal: number
+}
+
 /** Personnage joueur. */
 export interface Character {
   id: string
@@ -104,6 +242,9 @@ export interface Character {
   bonus: { sante: number; espoir: number }
   /** Journal des jets et actions (le plus récent en premier). */
   journal: LogEntry[]
+  armure: ArmorState
+  modules: InstalledModule[]
+  progression: ProgressionState
 }
 
 /** Contenu d'un fichier d'export `*.knightplay.json`. */
@@ -159,6 +300,23 @@ export interface RulesConfig {
     sacrificeDes: boolean
     /** Nombre maximal d'entrées conservées dans le journal. */
     journalMax: number
+  }
+  armure: {
+    /** Combinaison Guardian (fiche 06). */
+    guardianPa: number
+    guardianCdf: number
+    /** PE récupérés par heure de repos. */
+    rechargeParHeure: number
+    /** Heures repliée pour une recharge complète. */
+    heuresRepliPlein: number
+    /** Nombre de D6 d'un nod (soin, armure, énergie). */
+    nodDes: number
+    /** Nods reçus au début de chaque mission. */
+    nodsParMission: { energie: number; armure: number; soin: number }
+    /** Les OD restent-ils actifs à 0 PE ? (LdB : non) */
+    odSansEnergie: boolean
+    /** Autoriser l'installation au-delà des slots disponibles (règle maison). */
+    depassementSlots: boolean
   }
   derivees: {
     /** PS = santeBase + santeParPoint × caractéristique de Chair. */

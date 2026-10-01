@@ -1,10 +1,12 @@
 import type {
+  ArmorState,
   AspectId,
   CaracId,
   CaracValue,
   Character,
   GaugeId,
   RulesConfig,
+  Slots,
   SourcedDerivedId,
 } from './types'
 
@@ -68,6 +70,37 @@ export function aspectOf(carac: CaracId): AspectId {
   return aspect.id
 }
 
+/** Valeur de `armure.modele` quand aucune méta-armure n'est choisie. */
+export const NO_ARMOR = 'aucune'
+
+export function emptySlots(): Slots {
+  return { tete: 0, brasG: 0, brasD: 0, torse: 0, jambeG: 0, jambeD: 0 }
+}
+
+/** État « sans méta-armure » : les totaux d'armure et d'énergie se saisissent à la main. */
+export function noArmor(rules: RulesConfig): ArmorState {
+  return {
+    modele: NO_ARMOR,
+    nom: '',
+    generation: 0,
+    pa: 0,
+    pe: 0,
+    cdf: 0,
+    od: {},
+    slots: emptySlots(),
+    capacites: [],
+    evolutions: [],
+    aVerifier: false,
+    notes: '',
+    rechargeRepos: true,
+    etat: 'deployee',
+    guardianPa: rules.armure.guardianPa,
+    warriorType: null,
+    warriorTypes: [],
+    nods: { ...rules.armure.nodsParMission },
+  }
+}
+
 /** Données de fiche d'un nouveau chevalier (étape 1 de la création). */
 export function blankSheet(rules: RulesConfig): Omit<Character, 'id' | 'nom' | 'createdAt' | 'updatedAt'> {
   const aspects = Object.fromEntries(
@@ -111,5 +144,8 @@ export function blankSheet(rules: RulesConfig): Omit<Character, 'id' | 'nom' | '
     overrides: {},
     bonus: { sante: 0, espoir: 0 },
     journal: [],
+    armure: noArmor(rules),
+    modules: [],
+    progression: { pxActuel: 0, pxTotal: 0, pgSolde: 0, pgTotal: 0 },
   }
 }

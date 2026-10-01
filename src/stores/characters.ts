@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import type {
+  ArmorState,
   AspectId,
   CaracId,
   Character,
+  InstalledModule,
   DerivedId,
   DerivedSource,
   GaugeId,
@@ -12,6 +14,18 @@ import type {
 } from '../rules/types'
 import { blankSheet } from '../rules/catalog'
 import { clampGauges, gaugeTotals } from '../rules/derived'
+import { CUSTOM_ARMOR, NO_ARMOR, armorFromDef, moduleFromDef, noArmor, slotOverflow } from '../rules/armor'
+import {
+  foldRestEnergy,
+  resetNods,
+  restEnergy,
+  spendEnergy,
+  useNod as applyNod,
+  type EnergyResult,
+  type NodKind,
+} from '../rules/energy'
+import { findArmor } from '../data/armors'
+import { findModule } from '../data/modules'
 import { defaultRules } from '../config/defaultRules'
 import {
   getBrowserStorage,
@@ -212,6 +226,164 @@ export const useCharactersStore = defineStore('characters', () => {
     if (character) setGauge(gauge, gaugeTotals(character, rules.value)[gauge])
   }
 
+  // --- Méta-armure, modules, énergie (phase 4) ---
+
+  /** Choisit une armure du catalogue (ou aucune / personnalisée) et remplit les jauges. */
+  function setArmorModel(modele: string): void {
+    mutateActive((c) => {
+      if (modele === NO_ARMOR) {
+        c.armure = noArmor(rules.value)
+      } else if (modele === CUSTOM_ARMOR) {
+        c.armure = { ...c.armure, modele: CUSTOM_ARMOR, nom: c.armure.nom || 'Armure personnalisée', aVerifier: false }
+      } else {
+        const def = findArmor(modele)
+        if (!def) return
+        c.armure = armorFromDef(def, rules.value)
+      }
+      const totals = gaugeTotals(c, rules.value)
+      c.jauges.armure.actuel = totals.armure
+      c.jauges.energie.actuel = totals.energie
+    })
+  }
+
+  /** Modifie une valeur de l'armure (PA, PE, CdF, slots, OD…). */
+  function updateArmor(patch: Partial<ArmorState>): void {
+    mutateActive((c) => {
+      Object.assign(c.armure, patch)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function setArmorOd(carac: CaracId, value: number): void {
+    mutateActive((c) => {
+      const v = toNonNegativeInt(value)
+      if (v === 0) delete c.armure.od[carac]
+      else c.armure.od[carac] = v
+    })
+  }
+
+  function setPgTotal(value: number): void {
+    mutateActive((c) => {
+      c.progression.pgTotal = toNonNegativeInt(value)
+    })
+  }
+
+  /**
+   * Installe un module du catalogue. Refuse si les slots manquent, sauf règle maison
+   * ou ajout forcé. Renvoie les zones en dépassement.
+   */
+  function addModule(moduleId: string, niveau = 1, force = false): { ok: boolean; overflow: string[] } {
+    const def = findModule(moduleId)
+    const character = active.value
+    if (!def || !character) return { ok: false, overflow: [] }
+    const installed = moduleFromDef(def, niveau, newId())
+    const overflow = slotOverflow(character, installed.slots)
+    if (overflow.length && !force && !rules.value.armure.depassementSlots) return { ok: false, overflow }
+    mutateActive((c) => {
+      c.modules.push(installed)
+      clampGauges(c, rules.value)
+    })
+    return { ok: true, overflow }
+  }
+
+  function addCustomModule(nom: string): void {
+    mutateActive((c) => {
+      c.modules.push({
+        uid: newId(),
+        moduleId: null,
+        nom: nom.trim() || 'Module personnalisé',
+        niveau: 1,
+        slots: {},
+        energie: null,
+        activation: '',
+        duree: '',
+        effet: '',
+      })
+    })
+  }
+
+  function updateModule(uid: string, patch: Partial<InstalledModule>): void {
+    mutateActive((c) => {
+      const m = c.modules.find((x) => x.uid === uid)
+      if (!m) return
+      Object.assign(m, patch)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  /** Change le niveau d'un module du catalogue en reprenant son effet. */
+  function setModuleLevel(uid: string, niveau: number): void {
+    mutateActive((c) => {
+      const index = c.modules.findIndex((x) => x.uid === uid)
+      const current = c.modules[index]
+      const def = current?.moduleId ? findModule(current.moduleId) : undefined
+      if (!current) return
+      if (!def) {
+        current.niveau = Math.max(1, toNonNegativeInt(niveau))
+        return
+      }
+      c.modules[index] = { ...moduleFromDef(def, niveau, current.uid), slots: current.slots }
+      clampGauges(c, rules.value)
+    })
+  }
+
+  function removeModule(uid: string): void {
+    mutateActive((c) => {
+      c.modules = c.modules.filter((m) => m.uid !== uid)
+      clampGauges(c, rules.value)
+    })
+  }
+
+  /** Dépense de l'énergie (activation d'une capacité ou d'un module). */
+  function spend(cost: number): EnergyResult {
+    let result: EnergyResult = { ok: false, amount: 0 }
+    mutateActive((c) => {
+      result = spendEnergy(c, cost)
+    })
+    return result
+  }
+
+  function nod(kind: NodKind, value: number): EnergyResult {
+    let result: EnergyResult = { ok: false, amount: 0 }
+    mutateActive((c) => {
+      result = applyNod(c, kind, value, { sante: gaugeTotals(c, rules.value).sante })
+    })
+    return result
+  }
+
+  function rest(hours: number): EnergyResult {
+    let result: EnergyResult = { ok: false, amount: 0 }
+    mutateActive((c) => {
+      result = restEnergy(c, hours, rules.value)
+    })
+    return result
+  }
+
+  function foldRest(): EnergyResult {
+    let result: EnergyResult = { ok: false, amount: 0 }
+    mutateActive((c) => {
+      result = foldRestEnergy(c)
+    })
+    return result
+  }
+
+  function newMission(): void {
+    mutateActive((c) => resetNods(c, rules.value))
+  }
+
+  function setArmorEtat(etat: 'deployee' | 'repliee'): void {
+    mutateActive((c) => {
+      c.armure.etat = etat
+    })
+  }
+
+  /** Active (ou désactive avec `null`) un type de la Warrior. */
+  function setWarriorType(type: AspectId | null): void {
+    mutateActive((c) => {
+      c.armure.warriorType = type
+    })
+  }
+
   /** Ajoute un personnage importé (déjà validé et normalisé) et le sélectionne. */
   function addImported(character: Character): void {
     characters.value.push(character)
@@ -242,5 +414,21 @@ export const useCharactersStore = defineStore('characters', () => {
     setOverride,
     setBonus,
     restoreGauge,
+    setArmorModel,
+    updateArmor,
+    setArmorOd,
+    setPgTotal,
+    addModule,
+    addCustomModule,
+    updateModule,
+    setModuleLevel,
+    removeModule,
+    spend,
+    nod,
+    rest,
+    foldRest,
+    newMission,
+    setArmorEtat,
+    setWarriorType,
   }
 })

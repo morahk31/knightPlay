@@ -1,4 +1,5 @@
 import { ASPECTS, CARAC_LABELS, DERIVED_ASPECT, GAUGE_IDS } from './catalog'
+import { armorTotals, effectiveOd, hasArmor } from './armor'
 import type {
   AspectId,
   CaracId,
@@ -28,9 +29,8 @@ function usesOd(id: SourcedDerivedId, rules: RulesConfig): boolean {
   return rules.derivees.odDansDefenseReactionInitiative
 }
 
-function caracScore(c: Character, carac: CaracId, withOd: boolean): number {
-  const { val, od } = c.caracs[carac]
-  return val + (withOd ? od : 0)
+function caracScore(c: Character, carac: CaracId, withOd: boolean, rules: RulesConfig): number {
+  return c.caracs[carac].val + (withOd ? effectiveOd(c, carac, rules) : 0)
 }
 
 /** Caractéristique source : celle choisie, ou la meilleure de l'aspect si `auto`. */
@@ -41,13 +41,13 @@ export function resolveSource(c: Character, id: SourcedDerivedId, rules: RulesCo
   if (chosen !== 'auto' && candidates.includes(chosen)) return chosen
   const withOd = usesOd(id, rules)
   return candidates.reduce((best, carac) =>
-    caracScore(c, carac, withOd) > caracScore(c, best, withOd) ? carac : best,
+    caracScore(c, carac, withOd, rules) > caracScore(c, best, withOd, rules) ? carac : best,
   )
 }
 
 function computeSourced(c: Character, id: SourcedDerivedId, rules: RulesConfig): { computed: number; source: CaracId } {
   const source = resolveSource(c, id, rules)
-  const score = caracScore(c, source, usesOd(id, rules))
+  const score = caracScore(c, source, usesOd(id, rules), rules)
   const computed =
     id === 'santeMax'
       ? rules.derivees.santeBase + rules.derivees.santeParPoint * score + c.bonus.sante
@@ -80,10 +80,11 @@ export function computeDerived(c: Character, rules: RulesConfig): DerivedValues 
 /** Total effectif de chaque jauge. */
 export function gaugeTotals(c: Character, rules: RulesConfig): Record<GaugeId, number> {
   const d = computeDerived(c, rules)
+  const armor = hasArmor(c) ? armorTotals(c) : null
   return {
     sante: d.santeMax.value,
-    armure: c.jauges.armure.total,
-    energie: c.jauges.energie.total,
+    armure: armor ? armor.pa : c.jauges.armure.total,
+    energie: armor ? armor.pe : c.jauges.energie.total,
     espoir: d.espoirMax.value,
     heroisme: rules.derivees.heroismeMax,
   }

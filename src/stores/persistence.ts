@@ -62,11 +62,7 @@ function mergeDefaults(defaults: unknown, raw: unknown): unknown {
   if (typeof defaults === 'number') return typeof raw === 'number' && Number.isFinite(raw) ? raw : defaults
   if (typeof defaults === 'string') return typeof raw === 'string' ? raw : defaults
   if (typeof defaults === 'boolean') return typeof raw === 'boolean' ? raw : defaults
-  if (Array.isArray(defaults)) {
-    if (!Array.isArray(raw)) return defaults
-    const sample = defaults[0]
-    return sample === undefined ? raw.filter((v) => typeof v === 'string') : raw
-  }
+  if (Array.isArray(defaults)) return Array.isArray(raw) ? raw : defaults
   if (isRecord(defaults)) {
     if (!isRecord(raw)) return defaults
     const result: Record<string, unknown> = { ...raw }
@@ -93,13 +89,31 @@ export function normalizeCharacter(raw: unknown): Character | null {
         Object.entries(raw.overrides).filter(([, v]) => typeof v === 'number' && Number.isFinite(v)),
       )
     : {}
+  const strings = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
+  const motivations = sheet.motivations as { majeure: string; mineures: unknown }
+  motivations.mineures = strings(motivations.mineures)
+  const modules = Array.isArray(raw.modules)
+    ? raw.modules.filter((m) => isRecord(m) && typeof m.uid === 'string' && typeof m.nom === 'string')
+    : []
   const journal = Array.isArray(raw.journal)
     ? raw.journal.filter(
         (e): e is LogEntry =>
           isRecord(e) && typeof e.id === 'string' && typeof e.title === 'string' && typeof e.at === 'string',
       )
     : []
-  return { ...sheet, overrides, journal, id, nom, createdAt, updatedAt } as Character
+  return {
+    ...sheet,
+    avantages: strings(sheet.avantages),
+    inconvenients: strings(sheet.inconvenients),
+    overrides,
+    journal,
+    modules,
+    id,
+    nom,
+    createdAt,
+    updatedAt,
+  } as Character
 }
 
 /** Valide et normalise un état lu depuis le stockage. */

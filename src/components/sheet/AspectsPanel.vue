@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
 import { ASPECTS, CARAC_LABELS } from '../../rules/catalog'
 import { aspectCap, sheetWarnings } from '../../rules/derived'
+import { effectiveOd, hasArmor } from '../../rules/armor'
 import type { AspectId, CaracId } from '../../rules/types'
 
 const emit = defineEmits<{
@@ -17,6 +18,13 @@ const flagged = computed(() => new Set(warnings.value.map((w) => w.target)))
 
 function num(event: Event): number {
   return Number((event.target as HTMLInputElement).value)
+}
+
+/** OD effectif affiché à côté de la saisie quand il diffère (armure, type Warrior, armure repliée…). */
+function effective(carac: CaracId): number | null {
+  if (!store.active || !hasArmor(store.active)) return null
+  const value = effectiveOd(store.active, carac, store.rules)
+  return value === store.active.caracs[carac].od ? null : value
 }
 
 function cap(aspect: AspectId): number {
@@ -40,7 +48,7 @@ function cap(aspect: AspectId): number {
             @change="store.setAspect(aspect.id, num($event))"
           />
         </label>
-        <div class="carac-head" aria-hidden="true"><span></span><span>Score</span><span>OD</span></div>
+        <div class="carac-head" aria-hidden="true"><span></span><span>Score</span><span :title="store.active && hasArmor(store.active) ? 'OD achetés, en plus de ceux de l’armure' : 'Overdrives'">OD</span><span></span></div>
         <div
           v-for="carac in aspect.caracs"
           :key="carac"
@@ -73,6 +81,8 @@ function cap(aspect: AspectId): number {
             :value="store.active.caracs[carac].od"
             @change="store.setCarac(carac, 'od', num($event))"
           />
+          <span class="od-effective" :data-testid="`carac-${carac}-od-effectif`"
+            :title="effective(carac) !== null ? `OD effectifs : ${effective(carac)}` : ''">{{ effective(carac) !== null ? `=${effective(carac)}` : '' }}</span>
         </div>
       </div>
     </div>

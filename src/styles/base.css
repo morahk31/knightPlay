@@ -270,7 +270,7 @@ button.link:hover {
 .carac-head,
 .carac-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 2.2rem 2.2rem;
+  grid-template-columns: minmax(0, 1fr) 2.2rem 2.2rem 1.4rem;
   align-items: center;
   gap: 0.25rem;
 }
@@ -694,4 +694,297 @@ button.small {
 .log-head time,
 .log-detail {
   color: var(--muted);
+}
+
+.od-effective {
+  font-size: 0.75rem;
+  color: var(--gold);
+}
+
+.gauge-guardian {
+  font-size: 0.75rem;
+  color: var(--gold);
+}
+
+/* Méta-armure et modules */
+.armor-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.armor-head label,
+.armor-stats label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.armor-state {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.armor-state button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.status {
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.status.repliee {
+  color: var(--gold);
+}
+
+.status.deployee {
+  color: var(--ok);
+}
+
+.notice-inline {
+  margin: 0.3rem 0 0.6rem;
+  color: var(--gold);
+  font-size: 0.88rem;
+}
+
+.armor-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.armor-stats input {
+  width: 6rem;
+}
+
+.armor-stats small {
+  color: var(--muted);
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.slots-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.slot-line {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text);
+}
+
+.slot-line input {
+  width: 3rem;
+}
+
+.armor-od {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.armor-od-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.armor-od-col label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+}
+
+.armor-od-col input {
+  width: 2.6rem;
+}
+
+.checks {
+  display: flex;
+  gap: 1rem;
+}
+
+.capacities,
+.evolutions,
+.module-list,
+.activables {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.capacities li,
+.module-list li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.evolutions li {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.2rem 0;
+  color: var(--muted);
+}
+
+.evolutions li.unlocked {
+  color: var(--ok);
+}
+
+.evo-pg {
+  min-width: 6.5rem;
+  font-weight: 600;
+}
+
+label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+label.inline input {
+  width: 4.5rem;
+}
+
+.panel h4 label.inline {
+  margin-left: 1rem;
+}
+
+.slot-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.slot-summary .warn {
+  color: var(--danger);
+}
+
+.add-module {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.add-module select,
+.add-module input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-module .level-select {
+  flex: 0 0 auto;
+}
+
+.small-inline {
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+}
+
+.module-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.module-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.module-head label.inline input,
+.module-head select {
+  width: 4rem;
+}
+
+.module-effect {
+  width: 100%;
+  margin-top: 0.25rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  resize: vertical;
+}
+
+.slots-inline {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.slots-inline label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Panneau énergie */
+.activable {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3.5rem auto;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.activable-name {
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activable.warrior-type {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.nods,
+.rest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.nods input {
+  flex: 1 1 100%;
+}
+
+.rest input {
+  width: 3.5rem;
+}
+
+.energy-panel .notice {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
 }

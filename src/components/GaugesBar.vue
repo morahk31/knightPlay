@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useCharactersStore } from '../stores/characters'
 import { GAUGE_IDS, GAUGE_LABELS } from '../rules/catalog'
 import { gaugeTotals } from '../rules/derived'
+import { armorStatus, hasArmor } from '../rules/armor'
 import type { GaugeId } from '../rules/types'
 
 const store = useCharactersStore()
@@ -11,8 +12,11 @@ const totals = computed(() =>
   store.active ? gaugeTotals(store.active, store.rules) : null,
 )
 
-/** Jauges dont le total se saisit à la main (en attendant la méta-armure, phase 4). */
-const manualTotal = (id: GaugeId): id is 'armure' | 'energie' => id === 'armure' || id === 'energie'
+/** Jauges dont le total se saisit à la main (seulement sans méta-armure choisie). */
+const manualTotal = (id: GaugeId): id is 'armure' | 'energie' =>
+  (id === 'armure' || id === 'energie') && !!store.active && !hasArmor(store.active)
+
+const folded = computed(() => !!store.active && armorStatus(store.active) === 'repliee')
 
 function percent(id: GaugeId): number {
   const total = totals.value?.[id] ?? 0
@@ -66,6 +70,9 @@ function onTotal(id: 'armure' | 'energie', event: Event): void {
       </div>
       <div class="gauge-bar" role="progressbar" :aria-valuenow="percent(id)" aria-valuemin="0" aria-valuemax="100">
         <div class="gauge-fill" :style="{ width: `${percent(id)}%` }"></div>
+      </div>
+      <div v-if="id === 'armure' && folded" class="gauge-guardian" data-testid="gauge-guardian">
+        Repliée · Guardian {{ store.active?.armure.guardianPa }}/{{ store.rules.armure.guardianPa }} PA, CdF {{ store.rules.armure.guardianCdf }}
       </div>
       <div class="gauge-buttons">
         <button type="button" :data-testid="`gauge-${id}-minus`" :aria-label="`${GAUGE_LABELS[id]} −1`" @click="store.adjustGauge(id, -1)">−1</button>

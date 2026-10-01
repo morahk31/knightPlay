@@ -42,6 +42,18 @@ export const defaultRules: RulesConfig = {
     sacrificeDes: false,
     journalMax: 200,
   },
+  armure: {
+    // Fiche 06 (LdB p. 131-133)
+    guardianPa: 5,
+    guardianCdf: 5,
+    rechargeParHeure: 6,
+    heuresRepliPlein: 6,
+    // Fiche 08 (LdB p. 412)
+    nodDes: 3,
+    nodsParMission: { energie: 3, armure: 3, soin: 3 },
+    odSansEnergie: false,
+    depassementSlots: false,
+  },
   derivees: {
     // Fiche 02, étape 9 (LdB p. 173-174)
     santeBase: 10,

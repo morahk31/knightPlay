@@ -1,5 +1,6 @@
 import { CARAC_LABELS } from './catalog'
 import { chanceToBeat, countSuccesses } from './dice'
+import { effectiveOd } from './armor'
 import type { CaracId, Character, RulesConfig } from './types'
 
 /** Paramètres d'un test de caractéristiques (système combo, fiche 01). */
@@ -78,7 +79,7 @@ export function planTest(c: Character, input: TestInput, rules: RulesConfig): Te
   }
 
   const desCaracs = caracs.reduce((sum, id) => sum + c.caracs[id].val, 0)
-  const od = input.avecOd ? caracs.reduce((sum, id) => sum + c.caracs[id].od, 0) : 0
+  const od = input.avecOd ? caracs.reduce((sum, id) => sum + effectiveOd(c, id, rules), 0) : 0
   const malusEspoir = Math.max(0, rules.systeme.seuilDesespoir - c.jauges.espoir.actuel)
 
   const avantSacrifice = Math.max(0, desCaracs + trunc(input.modDes) - malusEspoir)
