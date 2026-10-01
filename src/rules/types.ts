@@ -245,6 +245,93 @@ export interface Character {
   armure: ArmorState
   modules: InstalledModule[]
   progression: ProgressionState
+  armes: OwnedWeapon[]
+  combat: CombatState
+}
+
+// --- Armes et attaques (phase 5) ---
+
+export type Portee = 'contact' | 'courte' | 'moyenne' | 'longue' | 'lointaine'
+
+/** Jet de dés : XD6 + fixe. Les bonus de caractéristiques viennent du type d'attaque et des effets. */
+export interface DiceExpr {
+  des: number
+  fixe: number
+}
+
+/** Effet d'arme : identifiant du catalogue (ou `autre`), niveau X éventuel, libellé affiché. */
+export interface EffectRef {
+  id: string
+  x?: number
+  label: string
+}
+
+export interface WeaponProfile {
+  /** Libellé du profil (« contact », « tir », « 2 mains », « missiles »…). */
+  nom: string
+  type: 'contact' | 'distance'
+  degats: DiceExpr
+  violence: DiceExpr
+  portee: Portee
+  effets: EffectRef[]
+  /** Coût en énergie (texte libre). */
+  energie?: string
+  /** Ajouter la Force aux dégâts (par défaut : vrai au contact, faux à distance). */
+  force?: boolean
+}
+
+export interface WeaponDef {
+  id: string
+  nom: string
+  categorie: 'contact' | 'distance'
+  dispo: Disponibilite
+  pg: number
+  profils: WeaponProfile[]
+  source: string
+  notes?: string
+}
+
+export interface WeaponUpgradeDef {
+  id: string
+  nom: string
+  pg: number
+  pour: 'distance' | 'contact'
+  effet: string
+  /** Effets ajoutés au profil (syntaxe des effets, ex. « silencieux, choc 1 »). */
+  ajoute?: string
+  /** Dés de dégâts et de violence ajoutés (+) ou retirés (−). */
+  degats?: number
+  violence?: number
+  /** Réussites automatiques à l'attaque. */
+  reussites?: number
+  source: string
+}
+
+/** Arme du rack d'un personnage (copie modifiable). */
+export interface OwnedWeapon {
+  uid: string
+  weaponId: string | null
+  nom: string
+  profils: WeaponProfile[]
+  /** Identifiants d'améliorations du catalogue. */
+  ameliorations: string[]
+  notes: string
+}
+
+export type StyleId =
+  | 'standard'
+  | 'agressif'
+  | 'defensif'
+  | 'couvert'
+  | 'ambidextre'
+  | 'akimbo'
+  | 'precis'
+  | 'pilonnage'
+  | 'puissant'
+  | 'suppression'
+
+export interface CombatState {
+  style: StyleId
 }
 
 /** Contenu d'un fichier d'export `*.knightplay.json`. */
@@ -317,6 +404,18 @@ export interface RulesConfig {
     odSansEnergie: boolean
     /** Autoriser l'installation au-delà des slots disponibles (règle maison). */
     depassementSlots: boolean
+  }
+  combat: {
+    /** Dégâts par OD de Force au contact (fiche 08). */
+    bonusOdForce: number
+    /** Arrondi de la moitié de violence en akimbo (contradiction du LdB p. 88-89). */
+    akimboArrondi: 'sup' | 'inf'
+    /** Réussites en trop du mode héroïque : en points (LdB) ou en D6 (livret 2020). */
+    modeHeroique: 'points' | 'des'
+    /** Arrondi de la défense ou réaction divisée par le point faible. */
+    pointFaibleArrondi: 'sup' | 'inf'
+    /** Nombre d'armes dans le rack. */
+    rackMax: number
   }
   derivees: {
     /** PS = santeBase + santeParPoint × caractéristique de Chair. */

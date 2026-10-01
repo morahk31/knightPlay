@@ -54,6 +54,16 @@ export const defaultRules: RulesConfig = {
     odSansEnergie: false,
     depassementSlots: false,
   },
+  combat: {
+    // Fiche 08 (LdB p. 413), FAQ-2020 p. 6
+    bonusOdForce: 3,
+    // ⚠️ Contradiction LdB p. 88 / p. 89 : le livret 2020 retient l'arrondi supérieur
+    akimboArrondi: 'sup',
+    // ⚠️ LdB : + réussites en trop ; livret 2020 : + autant de D6
+    modeHeroique: 'des',
+    pointFaibleArrondi: 'sup',
+    rackMax: 5,
+  },
   derivees: {
     // Fiche 02, étape 9 (LdB p. 173-174)
     santeBase: 10,

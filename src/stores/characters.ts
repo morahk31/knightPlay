@@ -6,6 +6,9 @@ import type {
   CaracId,
   Character,
   InstalledModule,
+  OwnedWeapon,
+  StyleId,
+  WeaponProfile,
   DerivedId,
   DerivedSource,
   GaugeId,
@@ -26,6 +29,7 @@ import {
 } from '../rules/energy'
 import { findArmor } from '../data/armors'
 import { findModule } from '../data/modules'
+import { findWeapon } from '../data/weapons'
 import { defaultRules } from '../config/defaultRules'
 import {
   getBrowserStorage,
@@ -371,6 +375,87 @@ export const useCharactersStore = defineStore('characters', () => {
     mutateActive((c) => resetNods(c, rules.value))
   }
 
+  // --- Armes et combat (phase 5) ---
+
+  /** Ajoute une arme du catalogue au rack ; refuse si le rack est plein. */
+  function addWeapon(weaponId: string): boolean {
+    const def = findWeapon(weaponId)
+    const c = active.value
+    if (!def || !c || c.armes.length >= rules.value.combat.rackMax) return false
+    mutateActive((x) => {
+      x.armes.push({
+        uid: newId(),
+        weaponId: def.id,
+        nom: def.nom,
+        profils: JSON.parse(JSON.stringify(def.profils)) as WeaponProfile[],
+        ameliorations: [],
+        notes: def.notes ?? '',
+      })
+    })
+    return true
+  }
+
+  function addCustomWeapon(nom: string, type: 'contact' | 'distance'): boolean {
+    const c = active.value
+    if (!c || c.armes.length >= rules.value.combat.rackMax) return false
+    mutateActive((x) => {
+      x.armes.push({
+        uid: newId(),
+        weaponId: null,
+        nom: nom.trim() || 'Arme personnalisée',
+        profils: [
+          {
+            nom: type === 'contact' ? 'Contact' : 'Tir',
+            type,
+            degats: { des: 2, fixe: 0 },
+            violence: { des: 1, fixe: 0 },
+            portee: type === 'contact' ? 'contact' : 'moyenne',
+            effets: [],
+          },
+        ],
+        ameliorations: [],
+        notes: '',
+      })
+    })
+    return true
+  }
+
+  function updateWeapon(uid: string, patch: Partial<Omit<OwnedWeapon, 'uid'>>): void {
+    mutateActive((c) => {
+      const w = c.armes.find((x) => x.uid === uid)
+      if (w) Object.assign(w, patch)
+    })
+  }
+
+  function updateWeaponProfile(uid: string, index: number, patch: Partial<WeaponProfile>): void {
+    mutateActive((c) => {
+      const profile = c.armes.find((x) => x.uid === uid)?.profils[index]
+      if (profile) Object.assign(profile, patch)
+    })
+  }
+
+  function toggleWeaponUpgrade(uid: string, upgradeId: string): void {
+    mutateActive((c) => {
+      const w = c.armes.find((x) => x.uid === uid)
+      if (!w) return
+      w.ameliorations = w.ameliorations.includes(upgradeId)
+        ? w.ameliorations.filter((id) => id !== upgradeId)
+        : [...w.ameliorations, upgradeId]
+    })
+  }
+
+  function removeWeapon(uid: string): void {
+    mutateActive((c) => {
+      c.armes = c.armes.filter((w) => w.uid !== uid)
+    })
+  }
+
+  function setStyle(style: StyleId): void {
+    mutateActive((c) => {
+      c.combat.style = style
+    })
+  }
+
   function setArmorEtat(etat: 'deployee' | 'repliee'): void {
     mutateActive((c) => {
       c.armure.etat = etat
@@ -430,5 +515,12 @@ export const useCharactersStore = defineStore('characters', () => {
     newMission,
     setArmorEtat,
     setWarriorType,
+    addWeapon,
+    addCustomWeapon,
+    updateWeapon,
+    updateWeaponProfile,
+    toggleWeaponUpgrade,
+    removeWeapon,
+    setStyle,
   }
 })

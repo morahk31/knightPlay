@@ -93,6 +93,9 @@ export function normalizeCharacter(raw: unknown): Character | null {
     Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
   const motivations = sheet.motivations as { majeure: string; mineures: unknown }
   motivations.mineures = strings(motivations.mineures)
+  const armes = Array.isArray(raw.armes)
+    ? raw.armes.filter((w) => isRecord(w) && typeof w.uid === 'string' && typeof w.nom === 'string' && Array.isArray(w.profils))
+    : []
   const modules = Array.isArray(raw.modules)
     ? raw.modules.filter((m) => isRecord(m) && typeof m.uid === 'string' && typeof m.nom === 'string')
     : []
@@ -109,6 +112,7 @@ export function normalizeCharacter(raw: unknown): Character | null {
     overrides,
     journal,
     modules,
+    armes,
     id,
     nom,
     createdAt,

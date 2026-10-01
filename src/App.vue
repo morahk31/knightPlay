@@ -9,6 +9,8 @@ import TestPanel from './components/actions/TestPanel.vue'
 import EnergyPanel from './components/actions/EnergyPanel.vue'
 import ArmorPanel from './components/sheet/ArmorPanel.vue'
 import ModulesPanel from './components/sheet/ModulesPanel.vue'
+import WeaponsPanel from './components/sheet/WeaponsPanel.vue'
+import AttackPanel from './components/actions/AttackPanel.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -25,7 +27,7 @@ const sheetTabs = [
 ] as const
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
-const actionSections = ['Attaque', 'Encaisser'] as const
+const actionSections = ['Encaisser'] as const
 
 /** Caractéristique proposée comme base du prochain test (clic sur la fiche). */
 const pendingBase = ref<CaracId | null>(null)
@@ -64,6 +66,9 @@ const pendingBase = ref<CaracId | null>(null)
         <div v-else-if="activeTab === 'armure'" class="tab-panel" role="tabpanel" data-testid="tab-armure">
           <ArmorPanel />
         </div>
+        <div v-else-if="activeTab === 'armes'" class="tab-panel" role="tabpanel" data-testid="tab-armes">
+          <WeaponsPanel />
+        </div>
         <div v-else-if="activeTab === 'modules'" class="tab-panel" role="tabpanel" data-testid="tab-modules">
           <ModulesPanel />
         </div>
@@ -75,6 +80,7 @@ const pendingBase = ref<CaracId | null>(null)
 
       <aside class="actions-panel" aria-label="Actions" data-testid="zone-actions">
         <TestPanel :pending-base="pendingBase" />
+        <AttackPanel />
         <section v-for="section in actionSections" :key="section" class="card">
           <h3>{{ section }}</h3>
           <p class="placeholder">À venir.</p>

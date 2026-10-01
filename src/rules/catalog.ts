@@ -147,5 +147,7 @@ export function blankSheet(rules: RulesConfig): Omit<Character, 'id' | 'nom' | '
     armure: noArmor(rules),
     modules: [],
     progression: { pxActuel: 0, pxTotal: 0, pgSolde: 0, pgTotal: 0 },
+    armes: [],
+    combat: { style: 'standard' },
   }
 }
