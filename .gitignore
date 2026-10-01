@@ -1,0 +1,16 @@
+# Dépendances et builds
+node_modules/
+dist/
+coverage/
+*.local
+
+# Documents locaux non versionnés
+règles/
+
+# Éditeurs et systèmes
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log
