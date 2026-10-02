@@ -54,6 +54,20 @@ const LG_ALL = 'assistance à l’attaque, lourd, deux mains'
 const CARREAU = 'silencieux, deux mains, précision'
 
 export const WEAPONS: readonly WeaponDef[] = [
+  // Arsenal de légende (aide de jeu optionnelle) et Longbow de la Ranger
+  w('pistolet-polycalibre', 'Pistolet polymorphique polycalibre', 'standard', 0, 'Arsenal de légende p. 5', [
+    p('Forme de base', 'distance', '2D6', '2D6', 'moyenne', 'fatal'),
+  ], 'Arme de base de l’arsenal de légende : achetez un châssis pour l’optimiser.'),
+  w('lame-polymorphique', 'Lame polymorphique', 'standard', 0, 'Arsenal de légende p. 5', [
+    p('Forme de base', 'contact', '2D6', '1D6', 'contact', 'fatal, silencieux'),
+  ], 'Arme de base de l’arsenal de légende : achetez un châssis pour l’optimiser.'),
+  w('longbow', 'Fusil Longbow (livre de base)', 'standard', 0, 'LdB p. 157', [
+    p('Tir', 'distance', '3D6', '1D6', 'moyenne', 'lourd, deux mains, assistance à l’attaque'),
+  ], 'Arme de la Ranger : PE, effets et évolutions dans le panneau Attaque et l’onglet Méta-armure.'),
+  w('longbow-arsenal', 'Fusil Longbow (arsenal de légende)', 'standard', 0, 'Arsenal de légende p. 23', [
+    p('Optimisée', 'distance', '3D6', '1D6', 'moyenne', 'lourd, fatal, deux mains, assistance à l’attaque, boost 9'),
+  ], 'Arme de la Ranger avec son arbre d’optimisations.'),
+
   // Équipement de base
   w('grenades', 'Grenades intelligentes', 'standard', 0, 'LdB p. 419', [
     p('Shrapnel', 'distance', '3D6', '3D6', 'courte', 'ultraviolence, meurtrier, dispersion 6, chargeur 5'),

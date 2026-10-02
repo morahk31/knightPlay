@@ -123,10 +123,10 @@ export const ARMORS: readonly ArmorDef[] = [
         duree: '6 secondes', effet: 'Voir l’invisible (gaz, pensées, Ghost…). Test base Perception (difficulté 2 à 9).' },
     ],
     evolutions: [
-      { pg: 50, achetee: true, effet: 'Effets à 6 PE : anti-Anathème, démoralisant, pénétrant 10, ignore armure, en chaîne, fureur.' },
-      { pg: 50, achetee: true, effet: 'Profil de base 5D6 / 3D6, plafond +9D6.' },
-      { pg: 50, achetee: true, effet: 'Le Longbow perd l’effet lourd.' },
-      { pg: 100, achetee: true, effet: 'Effets ajoutés à −2 PE (minimum 1).' },
+      { id: 'longbow-majeurs', pg: 50, achetee: true, effet: 'Effets à 6 PE : anti-Anathème, démoralisant, pénétrant 10, ignore armure, en chaîne, fureur.' },
+      { id: 'longbow-profil', pg: 50, achetee: true, effet: 'Profil de base 5D6 / 3D6, plafond +9D6.' },
+      { id: 'longbow-mobile', pg: 50, achetee: true, effet: 'Le Longbow perd l’effet lourd.' },
+      { id: 'longbow-economie', pg: 100, achetee: true, effet: 'Effets ajoutés à −2 PE (minimum 1).' },
     ],
   },
   {

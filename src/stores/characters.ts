@@ -7,6 +7,7 @@ import type {
   CaracId,
   Character,
   InstalledModule,
+  LegendBase,
   OwnedWeapon,
   ProgressionState,
   StyleId,
@@ -32,6 +33,8 @@ import {
   type NodKind,
 } from '../rules/energy'
 import { moduleCostToLevel } from '../data/modules'
+import { findChassis } from '../data/legend'
+import { checkChassis, checkOptimisation, legendProfiles } from '../rules/legend'
 import {
   checkAspect,
   checkCarac,
@@ -63,6 +66,13 @@ export function createCharacter(nom = DEFAULT_CHARACTER_NAME, rules: RulesConfig
 /** Entier positif ou nul (les saisies vides ou invalides valent 0). */
 function toNonNegativeInt(value: number): number {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0
+}
+
+/** Armes du catalogue qui sont des armes de l'arsenal de légende. */
+const LEGEND_WEAPONS: Record<string, LegendBase> = {
+  'pistolet-polycalibre': 'pistolet',
+  'lame-polymorphique': 'lame',
+  'longbow-arsenal': 'longbow',
 }
 
 export const useCharactersStore = defineStore('characters', () => {
@@ -397,17 +407,70 @@ export const useCharactersStore = defineStore('characters', () => {
     const def = findWeapon(weaponId)
     const c = active.value
     if (!def || !c || c.armes.length >= rules.value.combat.rackMax) return false
+    const base = LEGEND_WEAPONS[def.id]
+    const legende = base ? { base, chassisId: base === 'longbow' ? 'longbow' : null, achats: {} } : undefined
     mutateActive((x) => {
       x.armes.push({
         uid: newId(),
         weaponId: def.id,
         nom: def.nom,
-        profils: JSON.parse(JSON.stringify(def.profils)) as WeaponProfile[],
+        profils: legende ? legendProfiles(legende) : (JSON.parse(JSON.stringify(def.profils)) as WeaponProfile[]),
         ameliorations: [],
         notes: def.notes ?? '',
+        ...(legende ? { legende } : {}),
       })
     })
     return true
+  }
+
+  // --- Arsenal de légende et Longbow (phase 9) ---
+
+  /** Achète le châssis d'une arme de base de l'arsenal de légende. */
+  function buyChassis(uid: string, chassisId: string, force = false): UpgradeCheck | null {
+    const c = active.value
+    const weapon = c?.armes.find((w) => w.uid === uid)
+    const chassis = findChassis(chassisId)
+    if (!c || !weapon?.legende || !chassis) return null
+    return attempt(checkChassis(c, weapon.legende, chassis), force, 'legende', () =>
+      mutateActive((x) => {
+        const w = x.armes.find((a) => a.uid === uid)!
+        w.legende!.chassisId = chassis.id
+        w.profils = legendProfiles(w.legende!)
+      }),
+    )
+  }
+
+  /** Achète une optimisation (ou un achat de plus d'une optimisation répétable). */
+  function buyOptimisation(uid: string, optId: string, force = false): UpgradeCheck | null {
+    const c = active.value
+    const weapon = c?.armes.find((w) => w.uid === uid)
+    const chassis = findChassis(weapon?.legende?.chassisId)
+    const opt = chassis?.optimisations.find((o) => o.id === optId)
+    if (!c || !weapon?.legende || !chassis || !opt) return null
+    return attempt(checkOptimisation(c, chassis, weapon.legende, opt, rules.value), force, 'legende', () =>
+      mutateActive((x) => {
+        const w = x.armes.find((a) => a.uid === uid)!
+        w.legende!.achats[optId] = (w.legende!.achats[optId] ?? 0) + 1
+        w.profils = legendProfiles(w.legende!)
+      }),
+    )
+  }
+
+  /** Achète une évolution à acheter de la méta-armure (Ranger). */
+  function buyEvolution(index: number): UpgradeCheck | null {
+    const c = active.value
+    const evo = c?.armure.evolutions[index]
+    if (!c || !evo || !evo.achetee || evo.possedee) return null
+    const raisons = c.progression.pgSolde < evo.pg ? [{ texte: `PG insuffisants (${c.progression.pgSolde} pour ${evo.pg})`, bloquant: true }] : []
+    const check: UpgradeCheck = {
+      libelle: `Évolution ${c.armure.nom} : ${evo.effet}`, cout: evo.pg, devise: 'PG', de: 0, vers: 1, raisons,
+      ok: raisons.length === 0, forcable: false,
+    }
+    return attempt(check, false, 'evolution', () =>
+      mutateActive((x) => {
+        x.armure.evolutions[index]!.possedee = true
+      }),
+    )
   }
 
   function addCustomWeapon(nom: string, type: 'contact' | 'distance'): boolean {
@@ -509,9 +572,12 @@ export const useCharactersStore = defineStore('characters', () => {
 
   // --- Progression : PX, PG et historique (phase 7) ---
 
-  function snapshotOf(c: Character): TransactionSnapshot {
+  function snapshotOf(c: Character, withEvolutions = false): TransactionSnapshot {
     const { historique: _historique, ...progression } = c.progression
-    return JSON.parse(JSON.stringify({ aspects: c.aspects, caracs: c.caracs, modules: c.modules, armes: c.armes, progression }))
+    return JSON.parse(JSON.stringify({
+      aspects: c.aspects, caracs: c.caracs, modules: c.modules, armes: c.armes, progression,
+      ...(withEvolutions ? { evolutions: c.armure.evolutions } : {}),
+    }))
   }
 
   /**
@@ -527,7 +593,7 @@ export const useCharactersStore = defineStore('characters', () => {
   ): void {
     const c = active.value
     if (!c) return
-    const avant = snapshotOf(c)
+    const avant = snapshotOf(c, kind === 'evolution')
     change(c)
     mutateActive((x) => {
       const p = x.progression
@@ -564,7 +630,7 @@ export const useCharactersStore = defineStore('characters', () => {
   function attempt(check: UpgradeCheck, force: boolean, kind: TransactionKind, change: (c: Character) => void): UpgradeCheck {
     if (!check.ok && !(force && check.forcable)) return check
     const cost = { px: check.devise === 'PX' ? -check.cout : 0, pg: check.devise === 'PG' ? -check.cout : 0 }
-    const libelle = kind === 'module' || kind === 'arme' || kind === 'achat' ? check.libelle : `${check.libelle} ${check.de} → ${check.vers}`
+    const libelle = ['module', 'arme', 'achat', 'legende', 'evolution'].includes(kind) ? check.libelle : `${check.libelle} ${check.de} → ${check.vers}`
     transact(kind, libelle, cost, change, !check.ok)
     return check
   }
@@ -669,6 +735,7 @@ export const useCharactersStore = defineStore('characters', () => {
       x.caracs = avant.caracs
       x.modules = avant.modules
       x.armes = avant.armes
+      if (avant.evolutions) x.armure.evolutions = avant.evolutions
       x.progression = { ...(avant.progression as Omit<ProgressionState, 'historique'>), historique }
       clampGauges(x, rules.value)
     })
@@ -754,5 +821,8 @@ export const useCharactersStore = defineStore('characters', () => {
     buyOther,
     adjustProgression,
     undoTransaction,
+    buyChassis,
+    buyOptimisation,
+    buyEvolution,
   }
 })

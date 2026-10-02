@@ -31,6 +31,10 @@ export interface TargetInput {
   designee: boolean
   /** Cible non repérée (FAQ 2020) : +2 en défense au contact, −3 dés et +2 en réaction au tir. */
   invisible: boolean
+  /** PNJ de type salopard (annihilation). */
+  salopard: boolean
+  /** Cible exposée (effet exposer) : +12 dégâts. */
+  exposee: boolean
 }
 
 export interface AttackOptions {
@@ -44,6 +48,11 @@ export interface AttackOptions {
   /** Dés transférés par le style (pilonnage : tours sur la cible ; puissant : dés échangés). */
   transfert: number
   transfertVers: 'degats' | 'violence'
+  /** PE convertis en D6 (effet boost X, Longbow). */
+  boost: number
+  boostVers: 'degats' | 'violence'
+  /** Hostiles humains visés par l'effet fatal (2 dés sacrifiés chacun). */
+  fatal: number
 }
 
 export interface AttackInput {
@@ -76,6 +85,8 @@ export const DEFAULT_TARGET: TargetInput = {
   touchePs: false,
   designee: false,
   invisible: false,
+  salopard: false,
+  exposee: false,
 }
 
 export const DEFAULT_OPTIONS: AttackOptions = {
@@ -85,6 +96,9 @@ export const DEFAULT_OPTIONS: AttackOptions = {
   heroique: false,
   transfert: 0,
   transfertVers: 'degats',
+  boost: 0,
+  boostVers: 'degats',
+  fatal: 0,
 }
 
 function int(v: number | null | undefined): number {
@@ -166,6 +180,11 @@ export function planAttack(c: Character, input: AttackInput, rules: RulesConfig)
     modDes -= 3
     notes.push('Cible non repérée : −3 dés au tir.')
   }
+  const fatal = hasEffect(profile.effets, 'fatal') ? Math.max(0, int(options.fatal)) : 0
+  if (fatal) {
+    modDes -= 2 * fatal
+    notes.push(`Fatal : ${2 * fatal} dés sacrifiés ; si l’attaque touche, ${fatal} hostile${fatal > 1 ? 's' : ''} humain${fatal > 1 ? 's' : ''} hors de combat.`)
+  }
   let bonus = reussites
   if (target.designee && profile.type === 'distance') {
     bonus += 1
@@ -217,8 +236,12 @@ export interface DamagePlan {
   violence: DamagePart[]
   /** Violence de la seconde arme en akimbo : la moitié s'ajoute. */
   akimboViolence: DiceExpr | null
-  /** Dégâts au maximum (oblitération contre un hostile, héroïsme). */
+  /** Dégâts au maximum (oblitération contre un hostile, annihilation contre un salopard, héroïsme). */
   maxDegats: boolean
+  /** Bourreau X : dés de dégâts ≤ X comptent comme 4. */
+  bourreau: number
+  /** Dévastation X : dés de violence ≤ X comptent comme 5. */
+  devastation: number
   notes: string[]
 }
 
@@ -227,6 +250,8 @@ export interface DamageContext {
   reussites: number | null
   /** Réussites au-delà de l'opposition (assistance, mode héroïque). */
   excedent: number | null
+  /** Nombre de 6 obtenus au jet d'attaque (régularité), si connu. */
+  six?: number | null
   target: TargetInput
   options: AttackOptions
   ameliorations: string[]
@@ -277,6 +302,10 @@ export function planDamage(c: Character, rawProfile: WeaponProfile, ctx: DamageC
   }
   if (hasEffect(effets, 'orfevrerie')) degats.push({ label: 'Orfèvrerie (Dextérité + OD)', fixe: caracBonus(c, 'dexterite', rules) })
   if (hasEffect(effets, 'precision')) degats.push({ label: 'Précision (Tir + OD)', fixe: caracBonus(c, 'tir', rules) })
+  if (hasEffect(effets, 'sensitif')) degats.push({ label: 'Sensitif (Perception + OD)', fixe: caracBonus(c, 'perception', rules) })
+  if (hasEffect(effets, 'chirurgical')) degats.push({ label: 'Chirurgical (Savoir + OD)', fixe: caracBonus(c, 'savoir', rules) })
+  if (hasEffect(effets, 'regularite') && ctx.six) degats.push({ label: `Régularité (${ctx.six} × 6)`, fixe: 3 * ctx.six })
+  if (target.exposee) degats.push({ label: 'Cible exposée', fixe: 12 })
   if (ctx.ameliorations.includes('sur-mesure') && profile.type === 'contact') {
     degats.push({ label: 'Sur mesure (Combat + OD)', fixe: caracBonus(c, 'combat', rules) })
   }
@@ -291,7 +320,9 @@ export function planDamage(c: Character, rawProfile: WeaponProfile, ctx: DamageC
 
   // Assistance à l'attaque : sur la violence contre une bande, sinon sur les dégâts.
   const excedent = ctx.excedent ?? 0
-  if (hasEffect(effets, 'assistance') && excedent > 0) {
+  if (hasEffect(effets, 'excellence') && excedent > 0) {
+    ;(target.bande ? violence : degats).push({ label: 'Excellence (3 par réussite en trop)', fixe: 3 * excedent })
+  } else if (hasEffect(effets, 'assistance') && excedent > 0) {
     ;(target.bande ? violence : degats).push({ label: 'Assistance à l’attaque', fixe: excedent })
   }
   if (target.touchePa && hasEffect(effets, 'destructeur')) degats.push({ label: 'Destructeur (PA touchés)', des: 2 })
@@ -311,6 +342,11 @@ export function planDamage(c: Character, rawProfile: WeaponProfile, ctx: DamageC
     ;(options.transfertVers === 'violence' ? violence : degats).push({ label, des: n })
   }
 
+  // Boost : 1D6 par PE dépensé.
+  if (options.boost > 0) {
+    ;(options.boostVers === 'violence' ? violence : degats).push({ label: `Boost (${options.boost} PE)`, des: Math.trunc(options.boost) })
+  }
+
   // Mode héroïque : réussites en trop, en points ou en D6 selon la règle.
   if (options.heroique && excedent > 0) {
     const part = rules.combat.modeHeroique === 'des' ? { des: excedent } : { fixe: excedent }
@@ -325,11 +361,23 @@ export function planDamage(c: Character, rawProfile: WeaponProfile, ctx: DamageC
     if (ctx.reussites > seuil) notes.push(`Choc ${choc} : la cible perd ${choc} action${choc > 1 ? 's' : ''}.`)
   }
 
-  const maxDegats = options.degatsMax || (hasEffect(effets, 'obliteration') && target.hostile)
-  if (maxDegats) notes.push(options.degatsMax ? 'Héroïsme : dégâts au maximum.' : 'Oblitération contre un hostile : dégâts au maximum.')
+  const obliteration = hasEffect(effets, 'obliteration') && target.hostile
+  const annihilation = hasEffect(effets, 'annihilation') && target.salopard
+  const maxDegats = options.degatsMax || obliteration || annihilation
+  if (maxDegats) {
+    notes.push(
+      options.degatsMax ? 'Héroïsme : dégâts au maximum.'
+        : annihilation ? 'Annihilation contre un salopard : dégâts au maximum.'
+          : 'Oblitération contre un hostile : dégâts au maximum.',
+    )
+  }
+  const bourreau = effectValue(effets, 'bourreau')
+  const devastation = effectValue(effets, 'devastation')
+  if (bourreau) notes.push(`Bourreau ${bourreau} : dés de dégâts ≤ ${bourreau} comptés comme 4.`)
+  if (devastation) notes.push(`Dévastation ${devastation} : dés de violence ≤ ${devastation} comptés comme 5.`)
 
   const akimboViolence = akimbo ? { des: desViolence, fixe: profile.violence.fixe } : null
-  return { degats, violence, akimboViolence, maxDegats, notes }
+  return { degats, violence, akimboViolence, maxDegats, bourreau, devastation, notes }
 }
 
 export interface DamageResult {
@@ -353,8 +401,8 @@ export function resolveDamage(
   akimboViolenceSum: number | null,
   rules: RulesConfig,
 ): DamageResult {
-  const facesDegats = Array.isArray(degats) ? degats : null
-  const facesViolence = Array.isArray(violence) ? violence : null
+  const facesDegats = Array.isArray(degats) ? degats.map((f) => (f <= plan.bourreau ? 4 : f)) : null
+  const facesViolence = Array.isArray(violence) ? violence.map((f) => (f <= plan.devastation ? 5 : f)) : null
   const desDegats = sumDice(plan.degats)
   const sommeDegats = plan.maxDegats ? desDegats * 6 : facesDegats ? facesDegats.reduce((a, b) => a + b, 0) : int(degats as number)
   const sommeViolence = facesViolence ? facesViolence.reduce((a, b) => a + b, 0) : int(violence as number)

@@ -23,6 +23,18 @@ import {
   type TargetInput,
 } from '../../rules/attack'
 import { formatDice, unarmedProfile } from '../../data/weapons'
+import { effectValue } from '../../rules/effects'
+import {
+  EMPTY_SHOT,
+  INTERMEDIAIRES,
+  MAJEURS,
+  MAX_PAR_LISTE,
+  longbowCaps,
+  longbowCost,
+  longbowProfile,
+  shotProfile,
+  type LongbowShot,
+} from '../../rules/longbow'
 import type { CaracId, StyleId, WeaponProfile } from '../../rules/types'
 import DiceModeToggle, { type DiceMode } from './DiceModeToggle.vue'
 import RollResult from './RollResult.vue'
@@ -65,10 +77,50 @@ const damage = ref<DamageResult | null>(null)
 const erreur = ref<string | null>(null)
 
 const weapon = computed(() => c.value?.armes.find((w) => w.uid === weaponUid.value) ?? null)
-const profiles = computed<WeaponProfile[]>(() =>
-  weapon.value ? weapon.value.profils : [unarmedProfile(!!c.value && hasArmor(c.value))],
-)
+// --- Longbow : PE dépensés au tir ---
+const shot = ref<LongbowShot>({ ...EMPTY_SHOT, mineurs: [], intermediaires: [], majeurs: [] })
+const caps = computed(() => (c.value && weapon.value ? longbowCaps(c.value, weapon.value) : null))
+const longbowBase = computed(() => (c.value && weapon.value ? longbowProfile(c.value, weapon.value) : null))
+
+const profiles = computed<WeaponProfile[]>(() => {
+  if (longbowBase.value) return [shotProfile(longbowBase.value, shot.value)]
+  return weapon.value ? weapon.value.profils : [unarmedProfile(!!c.value && hasArmor(c.value))]
+})
 const profile = computed<WeaponProfile>(() => profiles.value[profileIndex.value] ?? profiles.value[0]!)
+
+/** Boost générique (effet boost X d'une arme de légende). */
+const boostMax = computed(() => (caps.value ? caps.value.boostMax : effectValue(profile.value.effets, 'boost')))
+const boostGenerique = ref(0)
+const boostVers = ref<'degats' | 'violence'>('degats')
+const fatal = ref(0)
+
+const shotCost = computed(() => {
+  if (caps.value) return longbowCost(shot.value, caps.value)
+  const b = Math.max(0, Math.trunc(boostGenerique.value || 0))
+  return { pe: b, detail: b ? [`boost ${b}D6 : ${b} PE`] : [], erreurs: b > boostMax.value ? [`Boost limité à ${boostMax.value}D6.`] : [] }
+})
+
+function toggleEffect(list: 'mineurs' | 'intermediaires' | 'majeurs', effet: string, checked: boolean): void {
+  const current = shot.value[list]
+  shot.value = { ...shot.value, [list]: checked ? [...current, effet] : current.filter((e) => e !== effet) }
+}
+
+/** Dépense l'énergie du tir (Longbow, boost) ; renvoie faux si impossible. */
+function payEnergy(): boolean {
+  const cost = shotCost.value
+  if (cost.erreurs.length) {
+    erreur.value = cost.erreurs.join(' ')
+    return false
+  }
+  if (!cost.pe) return true
+  const result = store.spend(cost.pe)
+  if (!result.ok) {
+    erreur.value = result.reason ?? 'Énergie insuffisante.'
+    return false
+  }
+  log.add({ kind: 'info', title: `Énergie : ${weaponName.value}`, detail: `−${cost.pe} PE (${cost.detail.join(', ')})`, outcome: 'info' })
+  return true
+}
 const weaponName = computed(() => (weapon.value ? weapon.value.nom : 'Mains nues'))
 const ameliorations = computed(() => weapon.value?.ameliorations ?? [])
 const style = computed<StyleId>(() => c.value?.combat.style ?? 'standard')
@@ -77,6 +129,9 @@ watch([weaponUid, profileIndex], () => {
   if (profileIndex.value >= profiles.value.length) profileIndex.value = 0
   base.value = profile.value.type === 'contact' ? 'combat' : 'tir'
   if (combo.value === base.value) combo.value = ''
+  shot.value = { ...EMPTY_SHOT, mineurs: [], intermediaires: [], majeurs: [] }
+  boostGenerique.value = 0
+  fatal.value = 0
   reset()
 })
 
@@ -99,6 +154,9 @@ const options = computed(() => ({
   heroique: heroique.value,
   transfert: transfert.value || 0,
   transfertVers: transfertVers.value,
+  boost: caps.value ? Math.max(0, Math.trunc(shot.value.boost || 0)) : Math.max(0, Math.trunc(boostGenerique.value || 0)),
+  boostVers: caps.value ? shot.value.boostVers : boostVers.value,
+  fatal: fatal.value || 0,
 }))
 
 const input = computed<AttackInput>(() => ({
@@ -130,7 +188,8 @@ const damagePreview = computed(() =>
 )
 
 function damageContext(reussites: number | null, excedent: number | null) {
-  return { reussites, excedent, target: target.value, options: options.value, ameliorations: ameliorations.value }
+  const six = toucher.value?.faces ? toucher.value.faces.filter((f) => f === 6).length : null
+  return { reussites, excedent, six, target: target.value, options: options.value, ameliorations: ameliorations.value }
 }
 
 const damagePlan = computed(() =>
@@ -210,6 +269,7 @@ function attaquer(): void {
     }
     r = { ...resolveFromCount(p.test, reussites, Number(saisieExploit.value) || 0, store.rules), faces }
   }
+  if (!payEnergy()) return
   if (!spendHeroism(extraCost.value)) return
   toucher.value = r
   hit.value = hitOf(r)
@@ -229,6 +289,7 @@ function attaquer(): void {
 function degats(seuls = false): void {
   erreur.value = null
   if (!c.value) return
+  if (seuls && !payEnergy()) return
   if (seuls) {
     toucher.value = null
     hit.value = { touche: null, excedent: null }
@@ -332,6 +393,45 @@ function degats(seuls = false): void {
       <label>Réussites ± <input v-model.number="modReussites" type="number" /></label>
     </div>
 
+    <fieldset v-if="caps" class="target longbow" data-testid="longbow">
+      <legend>Longbow ({{ caps.mode === 'ldb' ? 'livre de base' : 'arsenal de légende' }}) · {{ shotCost.pe }} PE</legend>
+      <div class="form-grid">
+        <label>Boost (PE → D6, max {{ caps.boostMax }})
+          <input v-model.number="shot.boost" type="number" min="0" :max="caps.boostMax" data-testid="longbow-boost" />
+        </label>
+        <label>Vers
+          <select v-model="shot.boostVers"><option value="degats">dégâts</option><option value="violence">violence</option></select>
+        </label>
+        <label>Portée +
+          <select v-model.number="shot.portee" data-testid="longbow-portee"><option :value="0">0</option><option :value="1">1 cran</option><option :value="2">2 crans</option></select>
+        </label>
+      </div>
+      <p class="hint">Effets ajoutés ({{ caps.economie ? 'Économie : −2 PE, minimum 1' : '2 / 3 / 6 PE' }}, {{ MAX_PAR_LISTE }} max par liste)</p>
+      <div class="checks-grid" data-testid="longbow-mineurs">
+        <label v-for="e in caps.mineurs" :key="e"><input type="checkbox" :checked="shot.mineurs.includes(e)" :data-testid="`longbow-${e}`"
+          @change="toggleEffect('mineurs', e, ($event.target as HTMLInputElement).checked)" /> {{ e }}</label>
+      </div>
+      <div class="checks-grid">
+        <label v-for="e in INTERMEDIAIRES" :key="e"><input type="checkbox" :checked="shot.intermediaires.includes(e)" :data-testid="`longbow-${e}`"
+          @change="toggleEffect('intermediaires', e, ($event.target as HTMLInputElement).checked)" /> {{ e }}</label>
+      </div>
+      <div v-if="caps.majeurs" class="checks-grid">
+        <label v-for="e in MAJEURS" :key="e"><input type="checkbox" :checked="shot.majeurs.includes(e)"
+          @change="toggleEffect('majeurs', e, ($event.target as HTMLInputElement).checked)" /> {{ e }}</label>
+      </div>
+      <p v-if="shotCost.detail.length" class="hint" data-testid="longbow-cost">{{ shotCost.detail.join(' · ') }}</p>
+      <p v-for="e in shotCost.erreurs" :key="e" class="error-text">{{ e }}</p>
+    </fieldset>
+    <div v-else-if="boostMax > 0" class="form-grid" data-testid="attack-boost">
+      <label>Boost (PE → D6, max {{ boostMax }}) <input v-model.number="boostGenerique" type="number" min="0" :max="boostMax" /></label>
+      <label>Vers <select v-model="boostVers"><option value="degats">dégâts</option><option value="violence">violence</option></select></label>
+    </div>
+    <div v-if="hasEffect(plan.profile.effets, 'fatal')" class="form-grid">
+      <label class="wide">Fatal : hostiles humains visés (2 dés sacrifiés chacun)
+        <input v-model.number="fatal" type="number" min="0" data-testid="attack-fatal" />
+      </label>
+    </div>
+
     <fieldset class="target" data-testid="attack-target">
       <legend>Cible</legend>
       <div class="form-grid">
@@ -365,6 +465,8 @@ function degats(seuls = false): void {
         <label v-if="hasEffect(plan.profile.effets, 'meurtrier')"><input v-model="target.touchePs" type="checkbox" /> PS touchés</label>
         <label><input v-model="degatsMax" type="checkbox" /> Dégâts max (1 héroïsme)</label>
         <label><input v-model="heroique" type="checkbox" /> Mode héroïque</label>
+        <label v-if="hasEffect(plan.profile.effets, 'annihilation')"><input v-model="target.salopard" type="checkbox" /> Salopard</label>
+        <label><input v-model="target.exposee" type="checkbox" /> Cible exposée (+12)</label>
       </div>
     </fieldset>
 

@@ -102,6 +102,10 @@ export interface ArmorCapability {
 }
 
 export interface ArmorEvolution {
+  /** Identifiant (évolutions utilisées par les calculs, ex. Longbow). */
+  id?: string
+  /** Évolution achetée (Ranger) : possédée. */
+  possedee?: boolean
   /** Palier de PG totaux (ou coût en PG pour les évolutions achetées de la Ranger). */
   pg: number
   effet: string
@@ -211,7 +215,7 @@ export interface ArmorState {
 }
 
 /** Points d'expérience et de gloire (historique en phase 7). */
-export type TransactionKind = 'mission' | 'aspect' | 'carac' | 'od' | 'module' | 'arme' | 'achat' | 'ajustement'
+export type TransactionKind = 'mission' | 'aspect' | 'carac' | 'od' | 'module' | 'arme' | 'legende' | 'evolution' | 'achat' | 'ajustement'
 
 /** Données restaurées par l'annulation d'une transaction. */
 export interface TransactionSnapshot {
@@ -220,6 +224,8 @@ export interface TransactionSnapshot {
   modules: InstalledModule[]
   armes: OwnedWeapon[]
   progression: Omit<ProgressionState, 'historique'>
+  /** Évolutions de la méta-armure (achats d'évolutions de la Ranger). */
+  evolutions?: ArmorEvolution[]
 }
 
 export interface Transaction {
@@ -338,6 +344,56 @@ export interface WeaponUpgradeDef {
   source: string
 }
 
+/** Arsenal de légende : arme de base, châssis et optimisations achetées. */
+export type LegendBase = 'pistolet' | 'lame' | 'longbow'
+
+export interface LegendBonus {
+  degatsDes?: number
+  degatsFixe?: number
+  violenceDes?: number
+  violenceFixe?: number
+}
+
+export interface LegendOptimisation {
+  /** Identifiant unique dans le châssis. */
+  id: string
+  nom: string
+  rarete: Disponibilite
+  /** Coût de chaque achat successif (plusieurs coûts = achat répétable). */
+  couts: number[]
+  /** Bonus apportés par chaque achat. */
+  bonus?: LegendBonus
+  /** Effets ajoutés (notation des profils). */
+  effet?: string
+  /** Effet remplacé (« remplace X ») : identifiant de l'effet retiré. */
+  remplace?: string
+  /** Effets supprimés (ex. deux mains, lourd). */
+  retire?: string[]
+  portee?: Portee
+  /** Règle particulière (Longbow). */
+  texte?: string
+  /** Voisins dans l'arbre : identifiants d'optimisations, `racine` (relié au châssis) ou `bus:…` (ligne commune). */
+  liens: string[]
+}
+
+export interface LegendChassis {
+  id: string
+  nom: string
+  base: LegendBase
+  pg: number
+  description: string
+  profil: WeaponProfile
+  optimisations: LegendOptimisation[]
+  source: string
+}
+
+export interface LegendState {
+  base: LegendBase
+  chassisId: string | null
+  /** Nombre d'achats par optimisation. */
+  achats: Record<string, number>
+}
+
 /** Arme du rack d'un personnage (copie modifiable). */
 export interface OwnedWeapon {
   uid: string
@@ -347,6 +403,8 @@ export interface OwnedWeapon {
   /** Identifiants d'améliorations du catalogue. */
   ameliorations: string[]
   notes: string
+  /** Arme de l'arsenal de légende (pistolet, lame ou Longbow). */
+  legende?: LegendState
 }
 
 export type StyleId =

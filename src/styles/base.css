@@ -1338,3 +1338,83 @@ button.warn {
 .settings-actions button {
   white-space: nowrap;
 }
+
+/* Arsenal de légende */
+.legend-details {
+  margin-top: 0.4rem;
+}
+
+.legend-chassis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.legend-chassis li {
+  padding: 0.25rem 0;
+}
+
+.legend-row {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-top: 2px solid var(--border);
+}
+
+.legend-row.standard { border-top-color: #3fb6e3; }
+.legend-row.avance { border-top-color: #c45aa8; }
+.legend-row.rare { border-top-color: #f08a2c; }
+.legend-row.prestige { border-top-color: #f2c12e; }
+
+.legend-row-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.legend-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.legend-opt {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.78rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  line-height: 1.2;
+}
+
+.legend-opt.complete {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.legend-opt.disponible {
+  border-color: var(--accent);
+}
+
+.legend-opt.non-reliee,
+.legend-opt.rarete {
+  opacity: 0.55;
+}
+
+.legend-opt-cost {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.legend-legend {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.attack-panel .longbow legend {
+  color: var(--accent);
+}

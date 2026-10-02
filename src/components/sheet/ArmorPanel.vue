@@ -168,9 +168,12 @@ function odOf(carac: CaracId): number {
         </label>
       </h4>
       <ul class="evolutions" data-testid="armor-evolutions">
-        <li v-for="(e, i) in c.armure.evolutions" :key="i" :class="{ unlocked: isEvolutionUnlocked(c, e.pg, e.achetee) }">
+        <li v-for="(e, i) in c.armure.evolutions" :key="i" :class="{ unlocked: e.possedee || isEvolutionUnlocked(c, e.pg, e.achetee) }">
           <span class="evo-pg">{{ e.achetee ? `${e.pg} PG (achat)` : `${e.pg} PG` }}</span>
-          <span>{{ isEvolutionUnlocked(c, e.pg, e.achetee) ? '✓' : '·' }} {{ e.effet }}</span>
+          <span>{{ e.possedee || isEvolutionUnlocked(c, e.pg, e.achetee) ? '✓' : '·' }} {{ e.effet }}</span>
+          <button v-if="e.achetee && !e.possedee" type="button" class="small-inline" :data-testid="`evolution-buy-${i}`"
+            :disabled="c.progression.pgSolde < e.pg" :title="c.progression.pgSolde < e.pg ? 'PG insuffisants' : ''"
+            @click="store.buyEvolution(i)">Acheter</button>
         </li>
       </ul>
     </template>

@@ -4,6 +4,7 @@ import { useCharactersStore } from '../../stores/characters'
 import { WEAPON_UPGRADES, formatDice, parseDice } from '../../data/weapons'
 import { useRulesStore } from '../../stores/rules'
 import { effectDescription, effectLabel, formatEffects, parseEffects } from '../../rules/effects'
+import LegendTree from './LegendTree.vue'
 import type { Disponibilite, OwnedWeapon, Portee, WeaponProfile } from '../../rules/types'
 
 const store = useCharactersStore()
@@ -120,6 +121,10 @@ function dispoOf(w: OwnedWeapon): string {
             <span v-if="pr.energie" class="chip energy" :title="pr.energie">PE : {{ pr.energie }}</span>
           </div>
         </div>
+        <details v-if="w.legende" class="legend-details" open data-testid="legend-section">
+          <summary>Arsenal de légende</summary>
+          <LegendTree :weapon="w" />
+        </details>
         <details>
           <summary>Améliorations <span v-if="w.ameliorations.length">({{ w.ameliorations.length }})</span></summary>
           <div class="upgrades">

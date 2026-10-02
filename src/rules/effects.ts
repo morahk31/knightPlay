@@ -58,6 +58,33 @@ export const EFFECTS: readonly EffectDef[] = [
   { id: 'main-libre', label: 'main libre', description: 'Laisse une main libre.' },
   { id: 'indestructible', label: 'indestructible', description: 'L’arme ne peut pas être cassée.' },
   { id: 'non-letal', label: 'non létal', description: 'Ne tue pas.' },
+
+  // Arsenal de légende (Knight Studio, 2025)
+  { id: 'fatal', label: 'fatal', calcule: true, description: 'En sacrifiant 2D6 au test d’attaque, une attaque réussie met hors combat un hostile humain ciblé (cumulable : 2D6 par cible).' },
+  { id: 'sensitif', label: 'sensitif', calcule: true, description: '+ Perception (et OD) aux dégâts.' },
+  { id: 'chirurgical', label: 'chirurgical', calcule: true, description: '+ Savoir (et OD) aux dégâts.' },
+  { id: 'bourreau', label: 'bourreau', x: true, calcule: true, description: 'Dés de dégâts : tout résultat inférieur ou égal à X compte comme un 4.' },
+  { id: 'devastation', label: 'dévastation', x: true, calcule: true, description: 'Dés de violence : tout résultat inférieur ou égal à X compte comme un 5.' },
+  { id: 'regularite', label: 'régularité', calcule: true, description: 'Test d’attaque base Tir ou Combat : chaque 6 ajoute +3 aux dégâts.' },
+  { id: 'annihilation', label: 'annihilation', calcule: true, description: 'Contre un salopard : dégâts au maximum, sans lancer.' },
+  { id: 'excellence', label: 'excellence', calcule: true, description: '+3 dégâts (ou violence contre une bande) par réussite au-delà de la défense ou de la réaction ; remplace l’assistance à l’attaque.' },
+  { id: 'boost', label: 'boost', x: true, calcule: true, description: '+1D6 de dégâts ou de violence par PE dépensé, dans la limite de XD6.' },
+  { id: 'sournois', label: 'sournois', description: 'Attaque surprise possible même repéré, dans le dos de la cible ou si un autre chevalier est engagé avec elle (une fois par tour).' },
+  { id: 'terrifiant', label: 'terrifiant', description: 'Le débordement de la bande ciblée est divisé par deux jusqu’au prochain tour.' },
+  { id: 'conviction', label: 'conviction', description: 'Éliminer une créature de l’Anathème rend 1 à 3 PEs selon son type.' },
+  { id: 'specialiste', label: 'spécialiste', x: true, description: 'Relance de X dés au choix, une fois par attaque.' },
+  { id: 'pillage', label: 'pillage', description: 'Une attaque réussie contre un ou plusieurs PNJ rend 3 PE (une fois par attaque).' },
+  { id: 'titanicide', label: 'titanicide', description: 'Contre un ennemi à résilience : 3 PE pour lui retirer 15 de résilience quand il subit des dégâts.' },
+  { id: 'briser-resilience', label: 'briser la résilience', description: 'L’attaque retire aussi 1D6 de résilience (+1D6 si on choisit de viser la résilience).' },
+  { id: 'cataclysme', label: 'cataclysme', description: 'Une fois par tour : cible tous les hostiles et salopards à portée courte (et une bande), qui subissent les dés de violence en dégâts.' },
+  { id: 'rempart', label: 'rempart', description: 'Un hostile ou salopard touché peut être provoqué : il doit attaquer le PJ ou fuir.' },
+  { id: 'deviation', label: 'déviation', description: 'Un tir raté contre le PJ à portée courte ou moyenne : 4 PE pour renvoyer les dégâts.' },
+  { id: 'exposer', label: 'exposer', description: 'La cible touchée est exposée : +12 dégâts à toute attaque contre elle jusqu’à son prochain tour.' },
+  { id: 'retribution', label: 'rétribution', description: 'Une attaque au contact ratée contre le PJ : 3 PE pour renvoyer les dégâts.' },
+  { id: 'frappe-portee', label: 'frappe à portée', description: 'Attaque une cible à portée courte comme au contact.' },
+  { id: 'arme-auxiliaire', label: 'arme auxiliaire', description: 'Longbow en tourelle d’épaule : tirer coûte une action de déplacement ; deux mains supprimable.' },
+  { id: 'economie', label: 'économie', description: 'Longbow : les effets ajoutés coûtent 2 PE de moins (minimum 1).' },
+  { id: 'tir-elite', label: 'tir d’élite', description: 'Exploit au tir contre un nuisible, hostile ou salopard qui dépasse sa réaction : cible éliminée (une fois par tour).' },
 ]
 
 const BY_ID = new Map(EFFECTS.map((e) => [e.id, e]))
