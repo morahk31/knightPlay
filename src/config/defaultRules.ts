@@ -54,6 +54,12 @@ export const defaultRules: RulesConfig = {
     odSansEnergie: false,
     depassementSlots: false,
   },
+  encaissement: {
+    // ⚠️ LdB p. 413 : le reste va aux PS ; FAQ-2020 p. 6-7 : d'abord aux PA de la Guardian
+    excedentApresPa: 'guardian',
+    // Fiche 06 (LdB p. 131) : −1 PS par tranche complète de 5 PA perdus
+    tranchePa: 5,
+  },
   combat: {
     // Fiche 08 (LdB p. 413), FAQ-2020 p. 6
     bonusOdForce: 3,

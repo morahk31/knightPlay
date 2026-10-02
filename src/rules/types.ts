@@ -405,6 +405,12 @@ export interface RulesConfig {
     /** Autoriser l'installation au-delà des slots disponibles (règle maison). */
     depassementSlots: boolean
   }
+  encaissement: {
+    /** Dégâts restants quand les PA tombent à 0 : Guardian puis PS (FAQ 2020) ou directement PS (LdB p. 413). */
+    excedentApresPa: 'guardian' | 'ps'
+    /** Taille d'une tranche de PA perdus qui coûte 1 PS (fiche 06). */
+    tranchePa: number
+  }
   combat: {
     /** Dégâts par OD de Force au contact (fiche 08). */
     bonusOdForce: number

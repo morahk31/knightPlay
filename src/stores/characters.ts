@@ -30,6 +30,7 @@ import {
 import { findArmor } from '../data/armors'
 import { findModule } from '../data/modules'
 import { findWeapon } from '../data/weapons'
+import { applySoak, restoreSoakState, soak, type IncomingHit, type SoakResult, type SoakState } from '../rules/soak'
 import { defaultRules } from '../config/defaultRules'
 import {
   getBrowserStorage,
@@ -456,6 +457,42 @@ export const useCharactersStore = defineStore('characters', () => {
     })
   }
 
+  // --- Encaisser (phase 6) ---
+
+  /** État avant le dernier encaissement, pour l'annuler (non sauvegardé). */
+  const lastSoak = ref<{ characterId: string; state: SoakState } | null>(null)
+
+  /** Calcule et applique une attaque reçue. */
+  function takeHit(hit: IncomingHit): SoakResult | null {
+    const c = active.value
+    if (!c) return null
+    const result = soak(c, hit, rules.value)
+    lastSoak.value = { characterId: c.id, state: result.before }
+    mutateActive((x) => applySoak(x, result))
+    return result
+  }
+
+  /** Annule le dernier encaissement du personnage actif. */
+  function undoSoak(): boolean {
+    const last = lastSoak.value
+    if (!last || last.characterId !== activeId.value) return false
+    mutateActive((c) => restoreSoakState(c, last.state))
+    lastSoak.value = null
+    return true
+  }
+
+  /** Point d'héroïsme : ignorer la mise à l'agonie et rester à 1 PS (fiche 05). */
+  function ignoreAgony(): boolean {
+    const c = active.value
+    if (!c || c.jauges.sante.actuel > 0 || c.jauges.heroisme.actuel < 1) return false
+    mutateActive((x) => {
+      x.jauges.heroisme.actuel -= 1
+      x.jauges.sante.actuel = 1
+    })
+    lastSoak.value = null
+    return true
+  }
+
   function setArmorEtat(etat: 'deployee' | 'repliee'): void {
     mutateActive((c) => {
       c.armure.etat = etat
@@ -522,5 +559,9 @@ export const useCharactersStore = defineStore('characters', () => {
     toggleWeaponUpgrade,
     removeWeapon,
     setStyle,
+    lastSoak,
+    takeHit,
+    undoSoak,
+    ignoreAgony,
   }
 })

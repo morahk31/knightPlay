@@ -1103,3 +1103,23 @@ label.inline input {
 .damage-result .sum {
   margin: 0.2rem 0;
 }
+
+/* Encaisser */
+.inline-roll {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.inline-roll input {
+  flex: 1;
+  min-width: 0;
+}
+
+.soak-preview {
+  font-size: 0.85rem;
+}
+
+.soak-panel .notice {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}

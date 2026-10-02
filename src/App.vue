@@ -11,6 +11,7 @@ import ArmorPanel from './components/sheet/ArmorPanel.vue'
 import ModulesPanel from './components/sheet/ModulesPanel.vue'
 import WeaponsPanel from './components/sheet/WeaponsPanel.vue'
 import AttackPanel from './components/actions/AttackPanel.vue'
+import SoakPanel from './components/actions/SoakPanel.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -27,7 +28,6 @@ const sheetTabs = [
 ] as const
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
-const actionSections = ['Encaisser'] as const
 
 /** Caractéristique proposée comme base du prochain test (clic sur la fiche). */
 const pendingBase = ref<CaracId | null>(null)
@@ -81,10 +81,7 @@ const pendingBase = ref<CaracId | null>(null)
       <aside class="actions-panel" aria-label="Actions" data-testid="zone-actions">
         <TestPanel :pending-base="pendingBase" />
         <AttackPanel />
-        <section v-for="section in actionSections" :key="section" class="card">
-          <h3>{{ section }}</h3>
-          <p class="placeholder">À venir.</p>
-        </section>
+        <SoakPanel />
         <EnergyPanel />
         <LogPanel />
       </aside>
