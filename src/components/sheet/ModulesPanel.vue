@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
-import { MODULES, findModule, moduleCostToLevel } from '../../data/modules'
+import { moduleCostToLevel } from '../../data/modules'
+import { useRulesStore } from '../../stores/rules'
 import { SLOT_LABELS, SLOT_ZONES, hasArmor, slotUsage } from '../../rules/armor'
 import type { InstalledModule, SlotZone } from '../../rules/types'
 
 const store = useCharactersStore()
+const rulesStore = useRulesStore()
+const modules = computed(() => rulesStore.catalogs.modules)
+const findModule = (id: string) => modules.value.find((m) => m.id === id)
 const c = computed(() => store.active)
 
-const categories = computed(() => [...new Set(MODULES.map((m) => m.categorie))])
+const categories = computed(() => [...new Set(modules.value.map((m) => m.categorie))])
 const selectedId = ref('')
 const selectedLevel = ref(1)
 const customName = ref('')
@@ -73,7 +77,7 @@ function levelsOf(m: InstalledModule): number {
       <select v-model="selectedId" data-testid="module-select" @change="selectedLevel = 1; overflowMessage = null">
         <option value="">— Ajouter un module du catalogue —</option>
         <optgroup v-for="cat in categories" :key="cat" :label="cat">
-          <option v-for="m in MODULES.filter((x) => x.categorie === cat)" :key="m.id" :value="m.id">
+          <option v-for="m in modules.filter((x) => x.categorie === cat)" :key="m.id" :value="m.id">
             {{ m.nom }} ({{ m.niveaux[0]?.pg }} PG, {{ DISPO_LABEL[m.niveaux[0]!.dispo] }})
           </option>
         </optgroup>

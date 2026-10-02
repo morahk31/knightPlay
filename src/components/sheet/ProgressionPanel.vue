@@ -13,12 +13,15 @@ import {
   renommee,
   type UpgradeCheck,
 } from '../../rules/progression'
-import { MODULES, findModule, moduleCostToLevel } from '../../data/modules'
-import { WEAPONS, findWeapon } from '../../data/weapons'
+import { moduleCostToLevel } from '../../data/modules'
+import { useRulesStore } from '../../stores/rules'
 import type { AspectId, CaracId, Disponibilite } from '../../rules/types'
 import HistoryList from './HistoryList.vue'
 
 const store = useCharactersStore()
+const rulesStore = useRulesStore()
+const findModule = (id: string) => rulesStore.catalogs.modules.find((m) => m.id === id)
+const findWeapon = (id: string) => rulesStore.catalogs.armes.find((w) => w.id === id)
 const c = computed(() => store.active)
 const rules = computed(() => store.rules)
 
@@ -184,7 +187,7 @@ function num(event: Event): number {
       <div class="add-module">
         <select v-model="moduleId" data-testid="buy-module" @change="moduleNiveau = 1">
           <option value="">— Module —</option>
-          <option v-for="m in MODULES" :key="m.id" :value="m.id">{{ m.nom }} ({{ DISPO[m.niveaux[0]!.dispo] }})</option>
+          <option v-for="m in rulesStore.catalogs.modules" :key="m.id" :value="m.id">{{ m.nom }} ({{ DISPO[m.niveaux[0]!.dispo] }})</option>
         </select>
         <select v-if="moduleDef && moduleDef.niveaux.length > 1" v-model.number="moduleNiveau" class="level-select" data-testid="buy-module-level">
           <option v-for="l in moduleDef.niveaux" :key="l.niveau" :value="l.niveau">Niv {{ l.niveau }}</option>
@@ -196,7 +199,7 @@ function num(event: Event): number {
       <div class="add-module">
         <select v-model="weaponId" data-testid="buy-weapon">
           <option value="">— Arme —</option>
-          <option v-for="w in WEAPONS" :key="w.id" :value="w.id">{{ w.nom }} ({{ DISPO[w.dispo] }})</option>
+          <option v-for="w in rulesStore.catalogs.armes" :key="w.id" :value="w.id">{{ w.nom }} ({{ DISPO[w.dispo] }})</option>
         </select>
         <button type="button" :disabled="!weaponCheck" :class="{ warn: weaponCheck && !weaponCheck.ok }" data-testid="buy-weapon-btn" @click="acheterArme">
           {{ weaponCheck ? `${weaponCheck.cout} PG` : 'Acheter' }}

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Règles maison — écran des paramètres et catalogues modifiables

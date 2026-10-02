@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
-import { ARMORS } from '../../data/armors'
+import { useRulesStore } from '../../stores/rules'
 import { ASPECTS, CARAC_LABELS } from '../../rules/catalog'
 import {
   CUSTOM_ARMOR,
@@ -18,9 +18,10 @@ import {
 import type { AspectId, CaracId, SlotZone } from '../../rules/types'
 
 const store = useCharactersStore()
+const rulesStore = useRulesStore()
 const c = computed(() => store.active)
 
-const generations = [1, 2, 3, 4]
+const generations = computed(() => [...new Set(rulesStore.catalogs.armures.map((a) => a.generation))].sort())
 const totals = computed(() => (c.value ? armorTotals(c.value) : null))
 const usage = computed(() => (c.value ? slotUsage(c.value) : null))
 const status = computed(() => (c.value ? armorStatus(c.value) : 'aucune'))
@@ -61,7 +62,7 @@ function odOf(carac: CaracId): number {
         <select data-testid="armor-model" :value="c.armure.modele" @change="onModel">
           <option :value="NO_ARMOR">— Aucune (totaux saisis à la main) —</option>
           <optgroup v-for="g in generations" :key="g" :label="`${g}ᵉ génération`">
-            <option v-for="a in ARMORS.filter((x) => x.generation === g)" :key="a.id" :value="a.id">{{ a.nom }}</option>
+            <option v-for="a in rulesStore.catalogs.armures.filter((x) => x.generation === g)" :key="a.id" :value="a.id">{{ a.nom }}</option>
           </optgroup>
           <option :value="CUSTOM_ARMOR">Personnalisée…</option>
         </select>

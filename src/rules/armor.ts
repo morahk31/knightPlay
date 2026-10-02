@@ -40,7 +40,9 @@ export function armorFromDef(def: ArmorDef, rules: RulesConfig): ArmorState {
     cdf: def.cdf,
     od: { ...def.od },
     slots: { ...def.slots },
-    capacites: def.capacites.map((c) => ({ ...c })),
+    capacites: def.capacites.map((c) =>
+      c.id === 'borealis-attaque' ? { ...c, cout: rules.armure.borealisPlasmaPe } : { ...c },
+    ),
     evolutions: def.evolutions.map((e) => ({ ...e })),
     aVerifier: def.aVerifier,
     notes: def.notes ?? '',

@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
-import { WEAPONS, WEAPON_UPGRADES, findWeapon, formatDice, parseDice } from '../../data/weapons'
+import { WEAPON_UPGRADES, formatDice, parseDice } from '../../data/weapons'
+import { useRulesStore } from '../../stores/rules'
 import { effectDescription, effectLabel, formatEffects, parseEffects } from '../../rules/effects'
 import type { Disponibilite, OwnedWeapon, Portee, WeaponProfile } from '../../rules/types'
 
 const store = useCharactersStore()
+const rulesStore = useRulesStore()
+const findWeapon = (id: string) => rulesStore.catalogs.armes.find((w) => w.id === id)
+const customEffects = computed(() => rulesStore.catalogs.effets)
 const c = computed(() => store.active)
 
 const DISPOS: { id: Disponibilite; label: string }[] = [
@@ -49,7 +53,10 @@ function upgradesFor(w: OwnedWeapon) {
 
 function dispoOf(w: OwnedWeapon): string {
   const def = w.weaponId ? findWeapon(w.weaponId) : undefined
-  return def ? `${def.pg} PG · ${DISPOS.find((d) => d.id === def.dispo)?.label.split(' ')[0]?.toLowerCase()} · ${def.source}` : 'personnalisée'
+  const casser = def ? store.rules.combat.casserArme[def.dispo === 'prestige' ? 'rare' : def.dispo] : null
+  return def
+    ? `${def.pg} PG · ${DISPOS.find((d) => d.id === def.dispo)?.label.split(' ')[0]?.toLowerCase()} · ${def.source} · casser : difficulté ${casser}`
+    : 'personnalisée'
 }
 </script>
 
@@ -61,7 +68,7 @@ function dispoOf(w: OwnedWeapon): string {
       <select v-model="selectedId" data-testid="weapon-select" :disabled="full">
         <option value="">— Ajouter une arme du catalogue —</option>
         <optgroup v-for="d in DISPOS" :key="d.id" :label="d.label">
-          <option v-for="wd in WEAPONS.filter((x) => x.dispo === d.id)" :key="wd.id" :value="wd.id">
+          <option v-for="wd in rulesStore.catalogs.armes.filter((x) => x.dispo === d.id)" :key="wd.id" :value="wd.id">
             {{ wd.nom }} ({{ wd.pg }} PG)
           </option>
         </optgroup>
@@ -107,9 +114,9 @@ function dispoOf(w: OwnedWeapon): string {
             <option v-for="po in PORTEES" :key="po" :value="po">{{ po }}</option>
           </select>
           <input class="wp-effects" :value="formatEffects(pr.effets)" placeholder="effets (ex. meurtrier, choc 1)" aria-label="Effets"
-            data-testid="weapon-effets" @change="patch(w, i, { effets: parseEffects(value($event)) })" />
+            data-testid="weapon-effets" @change="patch(w, i, { effets: parseEffects(value($event), customEffects) })" />
           <div class="effect-chips">
-            <span v-for="(e, k) in pr.effets" :key="k" class="chip" :class="{ custom: e.id === 'autre' }" :title="effectDescription(e)">{{ effectLabel(e) }}</span>
+            <span v-for="(e, k) in pr.effets" :key="k" class="chip" :class="{ custom: e.id === 'autre' }" :title="effectDescription(e, customEffects)">{{ effectLabel(e) }}</span>
             <span v-if="pr.energie" class="chip energy" :title="pr.energie">PE : {{ pr.energie }}</span>
           </div>
         </div>

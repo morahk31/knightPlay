@@ -99,8 +99,12 @@ export function effectLabel(ref: EffectRef): string {
   return ref.x !== undefined ? `${ref.label} ${ref.x}` : ref.label
 }
 
-/** Analyse « meurtrier, perce armure 40, jumelé (akimbo) » en références d'effets. */
-export function parseEffects(text: string): EffectRef[] {
+/**
+ * Analyse « meurtrier, perce armure 40, jumelé (akimbo) » en références d'effets.
+ * `extra` : effets personnalisés (règles maison), reconnus par leur libellé.
+ */
+export function parseEffects(text: string, extra: readonly EffectDef[] = []): EffectRef[] {
+  const extraByKey = new Map(extra.map((e) => [normalize(e.label), e]))
   return text
     .split(/[,;/]/)
     .map((part) => part.trim())
@@ -109,8 +113,9 @@ export function parseEffects(text: string): EffectRef[] {
       const match = /^(.*?)\s+(\d+)$/.exec(part)
       const name = match ? match[1]! : part
       const x = match ? Number(match[2]) : undefined
-      const id = BY_KEY.get(normalize(name))
-      const def = id ? BY_ID.get(id) : undefined
+      const key = normalize(name)
+      const id = BY_KEY.get(key)
+      const def = extraByKey.get(key) ?? (id ? BY_ID.get(id) : undefined)
       if (!def) return { id: 'autre', label: part }
       return x !== undefined && def.x ? { id: def.id, x, label: def.label } : { id: def.id, label: def.label }
     })
@@ -130,6 +135,6 @@ export function effectValue(effets: readonly EffectRef[], id: string): number {
 }
 
 /** Description d'un effet, pour les infobulles. */
-export function effectDescription(ref: EffectRef): string {
-  return findEffect(ref.id)?.description ?? 'Effet personnalisé.'
+export function effectDescription(ref: EffectRef, extra: readonly EffectDef[] = []): string {
+  return extra.find((e) => e.id === ref.id)?.description ?? findEffect(ref.id)?.description ?? 'Effet personnalisé.'
 }

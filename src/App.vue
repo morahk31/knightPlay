@@ -13,6 +13,7 @@ import WeaponsPanel from './components/sheet/WeaponsPanel.vue'
 import AttackPanel from './components/actions/AttackPanel.vue'
 import SoakPanel from './components/actions/SoakPanel.vue'
 import ProgressionPanel from './components/sheet/ProgressionPanel.vue'
+import SettingsView from './components/SettingsView.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -27,6 +28,8 @@ const sheetTabs = [
   { id: 'progression', label: 'Progression' },
   { id: 'notes', label: 'Notes' },
 ] as const
+/** Fiche du personnage ou écran des règles maison. */
+const view = ref<'fiche' | 'regles'>('fiche')
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
 
@@ -36,7 +39,7 @@ const pendingBase = ref<CaracId | null>(null)
 
 <template>
   <div class="app">
-    <TopBar />
+    <TopBar @rules="view = view === 'regles' ? 'fiche' : 'regles'" />
 
     <p v-if="store.storageWarning" class="banner warning" role="alert" data-testid="storage-warning">
       {{ store.storageWarning }}
@@ -44,7 +47,10 @@ const pendingBase = ref<CaracId | null>(null)
 
     <GaugesBar />
 
-    <main class="layout">
+    <main v-if="view === 'regles'" class="settings-page">
+      <SettingsView @close="view = 'fiche'" />
+    </main>
+    <main v-else class="layout">
       <section class="sheet" aria-label="Fiche du personnage" data-testid="zone-sheet">
         <nav class="tabs" role="tablist">
           <button

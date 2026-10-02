@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
 import { useLogStore } from '../../stores/log'
+import { useRulesStore } from '../../stores/rules'
 import { ASPECTS, CARAC_LABELS } from '../../rules/catalog'
 import { countSuccesses, parseFaces, rollD6, type Rng } from '../../rules/dice'
 import { hasArmor } from '../../rules/armor'
@@ -29,6 +30,7 @@ import RollResult from './RollResult.vue'
 const props = defineProps<{ rng?: Rng }>()
 
 const store = useCharactersStore()
+const rulesStore = useRulesStore()
 const log = useLogStore()
 const c = computed(() => store.active)
 
@@ -281,7 +283,7 @@ function degats(seuls = false): void {
       </label>
       <p class="wide hint profile-line" data-testid="attack-profile-line">
         {{ formatDice(plan.profile.degats) }} / {{ formatDice(plan.profile.violence) }} · {{ plan.profile.portee }}
-        <span v-for="(e, k) in plan.profile.effets" :key="k" class="chip" :title="effectDescription(e)">{{ effectLabel(e) }}</span>
+        <span v-for="(e, k) in plan.profile.effets" :key="k" class="chip" :title="effectDescription(e, rulesStore.catalogs.effets)">{{ effectLabel(e) }}</span>
       </p>
       <label class="wide">
         Style

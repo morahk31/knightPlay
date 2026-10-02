@@ -1220,3 +1220,121 @@ button.warn {
 .history-delta {
   font-weight: 600;
 }
+
+/* Règles maison */
+.rules-btn {
+  margin-left: auto;
+}
+
+.settings-page {
+  padding: 1rem;
+}
+
+.settings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.settings-head h2 {
+  margin: 0;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.settings-body {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 0.8rem;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.settings-nav button {
+  text-align: left;
+}
+
+.settings-nav button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.param {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface);
+}
+
+.param.modified {
+  border-color: var(--gold);
+}
+
+.param-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.param-label {
+  font-weight: 600;
+}
+
+.param-input {
+  margin-top: 0.3rem;
+}
+
+.param-input input[type='number'] {
+  width: 6rem;
+}
+
+.param-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.param-list {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.param-list input[type='number'] {
+  width: 5rem;
+}
+
+.param-source {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.catalog-form {
+  margin: 0.5rem 0;
+}
+
+.notes-field {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.4rem;
+}
+
+.settings-actions button {
+  white-space: nowrap;
+}

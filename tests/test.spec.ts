@@ -12,6 +12,7 @@ import {
 } from '../src/rules/test'
 import type { Character, RulesConfig } from '../src/rules/types'
 import { createCharacter, useCharactersStore } from '../src/stores/characters'
+import { useRulesStore } from '../src/stores/rules'
 import { useLogStore } from '../src/stores/log'
 import TestPanel from '../src/components/actions/TestPanel.vue'
 import LogPanel from '../src/components/LogPanel.vue'
@@ -255,13 +256,13 @@ describe('panneau de test', () => {
 
   it('le journal est limité en taille', () => {
     const { store } = setup()
-    store.rules = { ...store.rules, systeme: { ...store.rules.systeme, journalMax: 3 } }
+    expect(useRulesStore().setParam('systeme.journalMax', 10)).toBeNull()
     const c = store.active!
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 12; i++) {
       c.journal.unshift({ id: String(i), at: '', kind: 'info', title: 't', detail: '', outcome: 'info' })
     }
     useLogStore().add({ kind: 'info', title: 'x', detail: '', outcome: 'info' })
-    expect(c.journal).toHaveLength(3)
+    expect(c.journal).toHaveLength(10)
     expect(c.journal[0]!.title).toBe('x')
   })
 })

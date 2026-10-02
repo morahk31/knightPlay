@@ -433,6 +433,8 @@ export interface RulesConfig {
     nodsParMission: { energie: number; armure: number; soin: number }
     /** Les OD restent-ils actifs à 0 PE ? (LdB : non) */
     odSansEnergie: boolean
+    /** Coût de l'attaque de plasma de Borealis : 2 PE (LdB) ou 1 PE (FAQ 2020). */
+    borealisPlasmaPe: number
     /** Autoriser l'installation au-delà des slots disponibles (règle maison). */
     depassementSlots: boolean
   }
@@ -453,6 +455,8 @@ export interface RulesConfig {
     pointFaibleArrondi: 'sup' | 'inf'
     /** Nombre d'armes dans le rack. */
     rackMax: number
+    /** Difficulté pour casser une arme (base Force) : 5/7/12 (FAQ 2020) ou 7/9/12 (LdB p. 420). */
+    casserArme: { standard: number; avance: number; rare: number }
   }
   progression: {
     pxFinMission: number

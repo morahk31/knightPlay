@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useRulesStore } from './rules'
 import { computed, ref, watch } from 'vue'
 import type {
   ArmorState,
@@ -30,8 +31,7 @@ import {
   type EnergyResult,
   type NodKind,
 } from '../rules/energy'
-import { findArmor } from '../data/armors'
-import { findModule, moduleCostToLevel } from '../data/modules'
+import { moduleCostToLevel } from '../data/modules'
 import {
   checkAspect,
   checkCarac,
@@ -39,7 +39,6 @@ import {
   checkPurchase,
   type UpgradeCheck,
 } from '../rules/progression'
-import { findWeapon } from '../data/weapons'
 import { applySoak, restoreSoakState, soak, type IncomingHit, type SoakResult, type SoakState } from '../rules/soak'
 import { defaultRules } from '../config/defaultRules'
 import {
@@ -67,8 +66,12 @@ function toNonNegativeInt(value: number): number {
 }
 
 export const useCharactersStore = defineStore('characters', () => {
-  /** Règles effectives (remplacées par le store des règles maison en phase 8). */
-  const rules = ref<RulesConfig>(defaultRules)
+  const rulesStore = useRulesStore()
+  /** Règles effectives : référentiel + règles maison. */
+  const rules = computed<RulesConfig>(() => rulesStore.effective)
+  const findArmor = (id: string) => rulesStore.catalogs.armures.find((a) => a.id === id)
+  const findModule = (id: string) => rulesStore.catalogs.modules.find((m) => m.id === id)
+  const findWeapon = (id: string) => rulesStore.catalogs.armes.find((w) => w.id === id)
   const characters = ref<Character[]>([])
   const activeId = ref<string | null>(null)
   const storageWarning = ref<string | null>(null)
@@ -113,6 +116,7 @@ export const useCharactersStore = defineStore('characters', () => {
   function init(customStorage?: KeyValueStorage | null): void {
     if (initialized) return
     initialized = true
+    rulesStore.init(customStorage)
     storage = customStorage === undefined ? getBrowserStorage() : customStorage
     const result = loadState(storage)
     characters.value = result.state.characters
