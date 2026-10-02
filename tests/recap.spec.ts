@@ -4,8 +4,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defaultRules as rules } from '../src/config/defaultRules'
 import { findArmor } from '../src/data/armors'
 import { armorFromDef } from '../src/rules/armor'
-import { attackSummaries, bestCombo, recapAlerts } from '../src/rules/recap'
-import type { Character } from '../src/rules/types'
+import { attackSummaries, bestCombo, recapAlerts, recapEffects } from '../src/rules/recap'
+import type { Character, EffectRef } from '../src/rules/types'
 import { createCharacter, useCharactersStore } from '../src/stores/characters'
 import RecapView from '../src/components/RecapView.vue'
 import { memoryStorage } from './helpers'
@@ -57,6 +57,39 @@ describe('synthèse', () => {
   })
 })
 
+describe('lexique des effets', () => {
+  function arme(nom: string, effets: EffectRef[]): Character['armes'][number] {
+    return { uid: nom, weaponId: '', nom, ameliorations: [], notes: '',
+      profils: [{ nom: 'Coup', type: 'contact', degats: { des: 3, fixe: 0 }, violence: { des: 1, fixe: 0 }, portee: 'contact', effets }] }
+  }
+
+  it('une entrée par effet, avec valeurs X, armes, description et repère calculé', () => {
+    const c = ranger()
+    c.armes = [
+      arme('Marteau', [{ id: 'meurtrier', label: 'meurtrier' }, { id: 'choc', x: 1, label: 'choc' }]),
+      arme('Épée', [{ id: 'perce-armure', x: 40, label: 'perce armure' }, { id: 'meurtrier', label: 'meurtrier' }, { id: 'choc', x: 3, label: 'choc' }]),
+    ]
+    const effets = recapEffects(attackSummaries(c, rules))
+    expect(effets.map((e) => e.id)).toEqual(['meurtrier', 'choc', 'perce-armure'])
+    expect(effets[0]).toMatchObject({ armes: ['Marteau', 'Épée'], valeurs: [], calcule: true, description: '+2D6 aux dégâts si les PS sont touchés.' })
+    expect(effets[1]).toMatchObject({ valeurs: [1, 3], calcule: true })
+    expect(effets[1]!.description).toContain('Chair')
+    expect(effets[2]).toMatchObject({ valeurs: [40], armes: ['Épée'], calcule: false })
+  })
+
+  it('effets personnalisés et non reconnus ; mains nues sans effet', () => {
+    const c = ranger()
+    expect(recapEffects(attackSummaries(c, rules))).toEqual([])
+    c.armes = [arme('Lame', [{ id: 'saignement', label: 'saignement' }, { id: 'autre', label: 'brûlure 2' }])]
+    const extra = [{ id: 'saignement', label: 'saignement', description: 'Perd 1 PS par tour.' }]
+    const effets = recapEffects(attackSummaries(c, rules), extra)
+    expect(effets).toEqual([
+      { id: 'saignement', label: 'saignement', valeurs: [], armes: ['Lame'], description: 'Perd 1 PS par tour.', calcule: false },
+      { id: 'autre', label: 'brûlure 2', valeurs: [], armes: ['Lame'], description: 'Effet personnalisé.', calcule: false },
+    ])
+  })
+})
+
 describe('page Récap', () => {
   beforeEach(() => setActivePinia(createPinia()))
 
@@ -73,6 +106,19 @@ describe('page Récap', () => {
     expect(wrapper.get('[data-testid="recap-capacities"]').text()).toContain('La Vision')
     expect(wrapper.get('[data-testid="recap-od"]').text()).toContain('Déplacement 1')
     expect(wrapper.text()).toContain('Rappels de règles')
+  })
+
+  it('lexique des effets des armes, sans survol', () => {
+    const store = useCharactersStore()
+    store.init(memoryStorage())
+    expect(mount(RecapView).find('[data-testid="recap-effects"]').exists()).toBe(false)
+    store.addWeapon('shotgun-escamotable')
+    const section = mount(RecapView).get('[data-testid="recap-effects"]')
+    expect(section.text()).toContain('meurtrier')
+    expect(section.text()).toContain('choc 1')
+    expect(section.text()).toContain('+2D6 aux dégâts si les PS sont touchés.')
+    expect(section.text()).toContain('calculé')
+    expect(section.text()).toContain('Shotgun escamotable')
   })
 
   it('Retour à la fiche', async () => {

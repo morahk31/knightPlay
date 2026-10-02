@@ -3,6 +3,7 @@ import { armorStatus, armorSystemsOnline, effectiveOd, hasArmor } from './armor'
 import { CARAC_IDS } from './catalog'
 import { DEFAULT_OPTIONS, DEFAULT_TARGET, describeParts, planAttack, planDamage } from './attack'
 import { gaugeTotals } from './derived'
+import { effectDescription, findEffect, type EffectDef } from './effects'
 import { longbowCaps, longbowProfile } from './longbow'
 import type { CaracId, Character, RulesConfig, WeaponProfile } from './types'
 
@@ -98,5 +99,39 @@ export function attackSummaries(c: Character, rules: RulesConfig): AttackSummary
     for (const p of w.profils) out.push(summarize(c, w.profils.length > 1 ? `${w.nom} · ${p.nom}` : w.nom, p, rules))
   }
   out.push(summarize(c, 'Mains nues', unarmedProfile(hasArmor(c)), rules))
+  return out
+}
+
+/** Un effet des armes, pour le lexique du Récap. */
+export interface RecapEffect {
+  id: string
+  label: string
+  /** Valeurs X distinctes, triées. */
+  valeurs: number[]
+  /** Attaques qui portent l'effet. */
+  armes: string[]
+  description: string
+  /** Appliqué par l'outil dans le panneau Attaquer. */
+  calcule: boolean
+}
+
+/** Effets des attaques, une entrée par effet, dans l'ordre d'apparition. */
+export function recapEffects(attacks: readonly AttackSummary[], extra: readonly EffectDef[] = []): RecapEffect[] {
+  const byKey = new Map<string, RecapEffect>()
+  for (const a of attacks) {
+    for (const ref of a.profil.effets) {
+      const key = ref.id === 'autre' ? `autre:${ref.label}` : ref.id
+      let entry = byKey.get(key)
+      if (!entry) {
+        const def = extra.find((e) => e.id === ref.id) ?? findEffect(ref.id)
+        entry = { id: ref.id, label: ref.label, valeurs: [], armes: [], description: effectDescription(ref, extra), calcule: !!def?.calcule }
+        byKey.set(key, entry)
+      }
+      if (ref.x !== undefined && !entry.valeurs.includes(ref.x)) entry.valeurs.push(ref.x)
+      if (!entry.armes.includes(a.arme)) entry.armes.push(a.arme)
+    }
+  }
+  const out = [...byKey.values()]
+  for (const e of out) e.valeurs.sort((x, y) => x - y)
   return out
 }
