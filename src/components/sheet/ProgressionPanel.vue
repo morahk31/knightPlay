@@ -17,6 +17,8 @@ import { moduleCostToLevel } from '../../data/modules'
 import { useRulesStore } from '../../stores/rules'
 import type { AspectId, CaracId, Disponibilite } from '../../rules/types'
 import HistoryList from './HistoryList.vue'
+import StatTile from '../ui/StatTile.vue'
+import NumberField from '../ui/NumberField.vue'
 
 const store = useCharactersStore()
 const rulesStore = useRulesStore()
@@ -116,22 +118,40 @@ function acheterAutre(): void {
   }
 }
 
+/** État d'un bouton d'achat : possible, possible en passant outre, ou bloqué (solde insuffisant). */
+function btnState(check: UpgradeCheck | null): Record<string, boolean> {
+  if (!check) return {}
+  return { warn: !check.ok && check.forcable, blocked: !check.ok && !check.forcable }
+}
+
 const DISPO: Record<Disponibilite, string> = { standard: 'S', avance: 'A', rare: 'R', prestige: 'P' }
 
-function num(event: Event): number {
-  return Math.max(0, Math.trunc(Number((event.target as HTMLInputElement).value) || 0))
-}
 </script>
 
 <template>
   <div v-if="c" class="progression" data-testid="progression-panel">
     <section class="panel" aria-labelledby="soldes-title">
-      <h3 id="soldes-title">Progression <small class="muted">· {{ renommee(c, rules) }}</small></h3>
+      <div class="panel-head">
+        <h3 id="soldes-title">Progression</h3>
+        <span class="hint">{{ renommee(c, rules) }} · une correction des compteurs est notée dans l’historique</span>
+      </div>
       <div class="soldes">
-        <label>PX disponibles <input type="number" min="0" :value="c.progression.pxActuel" data-testid="prog-px" @change="store.adjustProgression('pxActuel', num($event))" /></label>
-        <label>PX totaux <input type="number" min="0" :value="c.progression.pxTotal" data-testid="prog-px-total" @change="store.adjustProgression('pxTotal', num($event))" /></label>
-        <label>PG disponibles <input type="number" min="0" :value="c.progression.pgSolde" data-testid="prog-pg" @change="store.adjustProgression('pgSolde', num($event))" /></label>
-        <label>PG gagnés (total) <input type="number" min="0" :value="c.progression.pgTotal" data-testid="prog-pg-total" @change="store.adjustProgression('pgTotal', num($event))" /></label>
+        <StatTile label="PX disponibles" :value="c.progression.pxActuel" note="à dépenser" accent="accent">
+          <label class="tile-field">corriger <NumberField :model-value="c.progression.pxActuel" :digits="4" label="PX disponibles" data-testid="prog-px"
+            @update:model-value="store.adjustProgression('pxActuel', $event)" /></label>
+        </StatTile>
+        <StatTile label="PX totaux" :value="c.progression.pxTotal" note="gagnés depuis la création" accent="muted">
+          <label class="tile-field">corriger <NumberField :model-value="c.progression.pxTotal" :digits="4" label="PX totaux" data-testid="prog-px-total"
+            @update:model-value="store.adjustProgression('pxTotal', $event)" /></label>
+        </StatTile>
+        <StatTile label="PG disponibles" :value="c.progression.pgSolde" note="à dépenser" accent="gold">
+          <label class="tile-field">corriger <NumberField :model-value="c.progression.pgSolde" :digits="4" label="PG disponibles" data-testid="prog-pg"
+            @update:model-value="store.adjustProgression('pgSolde', $event)" /></label>
+        </StatTile>
+        <StatTile label="PG gagnés" :value="c.progression.pgTotal" note="débloquent l’équipement et les évolutions" accent="muted">
+          <label class="tile-field">corriger <NumberField :model-value="c.progression.pgTotal" :digits="4" label="PG gagnés (total)" data-testid="prog-pg-total"
+            @update:model-value="store.adjustProgression('pgTotal', $event)" /></label>
+        </StatTile>
       </div>
 
       <details class="mission" data-testid="mission">
@@ -160,28 +180,33 @@ function num(event: Event): number {
     </div>
 
     <section class="panel" aria-labelledby="ameliorer-title">
-      <h4 id="ameliorer-title">Améliorer <small class="muted">(aspects et caractéristiques en PX, overdrives en PG)</small></h4>
+      <div class="panel-head">
+        <h4 id="ameliorer-title">Améliorer</h4>
+        <span class="hint">Aspects et caractéristiques en PX, overdrives en PG ·
+          <span class="legend-state ok">possible</span> <span class="legend-state warn">à outrepasser</span> <span class="legend-state blocked">solde insuffisant</span></span>
+      </div>
       <div class="upgrade-grid">
         <div v-for="a in ASPECTS" :key="a.id" class="upgrade-aspect" :data-testid="`up-aspect-${a.id}`">
           <div class="upgrade-row aspect-row">
             <strong>{{ a.nom }} {{ c.aspects[a.id] }}</strong>
-            <button type="button" :class="{ warn: !aspectCheck(a.id).ok }" :title="refusalText(aspectCheck(a.id))"
+            <button type="button" :class="btnState(aspectCheck(a.id))" :title="refusalText(aspectCheck(a.id))"
               :data-testid="`up-aspect-${a.id}-btn`" @click="plusAspect(a.id)">
               +1 · {{ aspectCheck(a.id).cout }} PX
             </button>
           </div>
           <div v-for="k in a.caracs" :key="k" class="upgrade-row">
             <span>{{ CARAC_LABELS[k] }} {{ c.caracs[k].val }}</span>
-            <button type="button" :class="{ warn: !caracCheck(k).ok }" :title="refusalText(caracCheck(k))"
+            <button type="button" :class="btnState(caracCheck(k))" :title="refusalText(caracCheck(k))"
               :data-testid="`up-carac-${k}`" @click="plusCarac(k)">+1 · {{ caracCheck(k).cout }} PX</button>
             <span class="muted">OD {{ odLevel(c, k) }}</span>
-            <button type="button" :class="{ warn: !odCheck(k).ok }" :title="refusalText(odCheck(k))"
+            <button type="button" :class="btnState(odCheck(k))" :title="refusalText(odCheck(k))"
               :data-testid="`up-od-${k}`" @click="plusOd(k)">+1 · {{ odCheck(k).cout }} PG</button>
           </div>
         </div>
       </div>
     </section>
 
+    <div class="prog-columns">
     <section class="panel" aria-labelledby="achats-title">
       <h4 id="achats-title">Acheter en PG</h4>
       <div class="add-module">
@@ -192,7 +217,7 @@ function num(event: Event): number {
         <select v-if="moduleDef && moduleDef.niveaux.length > 1" v-model.number="moduleNiveau" class="level-select" data-testid="buy-module-level">
           <option v-for="l in moduleDef.niveaux" :key="l.niveau" :value="l.niveau">Niv {{ l.niveau }}</option>
         </select>
-        <button type="button" :disabled="!moduleCheck" :class="{ warn: moduleCheck && !moduleCheck.ok }" data-testid="buy-module-btn" @click="acheterModule">
+        <button type="button" :disabled="!moduleCheck" :class="btnState(moduleCheck)" data-testid="buy-module-btn" @click="acheterModule">
           {{ moduleCheck ? `${moduleCheck.cout} PG` : 'Acheter' }}
         </button>
       </div>
@@ -201,7 +226,7 @@ function num(event: Event): number {
           <option value="">— Arme —</option>
           <option v-for="w in rulesStore.catalogs.armes" :key="w.id" :value="w.id">{{ w.nom }} ({{ DISPO[w.dispo] }})</option>
         </select>
-        <button type="button" :disabled="!weaponCheck" :class="{ warn: weaponCheck && !weaponCheck.ok }" data-testid="buy-weapon-btn" @click="acheterArme">
+        <button type="button" :disabled="!weaponCheck" :class="btnState(weaponCheck)" data-testid="buy-weapon-btn" @click="acheterArme">
           {{ weaponCheck ? `${weaponCheck.cout} PG` : 'Acheter' }}
         </button>
       </div>
@@ -218,5 +243,6 @@ function num(event: Event): number {
     </section>
 
     <HistoryList />
+    </div>
   </div>
 </template>

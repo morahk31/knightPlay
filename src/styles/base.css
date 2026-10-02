@@ -1495,20 +1495,6 @@ label.inline input {
   gap: 0.8rem;
 }
 
-.soldes {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.soldes label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
 .mission {
   margin-top: 0.6rem;
 }
@@ -1569,7 +1555,7 @@ button.warn {
 
 .history-list li {
   display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr) auto auto;
+  grid-template-columns: 6.5rem 3rem minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0;

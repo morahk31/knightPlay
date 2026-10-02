@@ -130,3 +130,131 @@
 .stat-tile-extra {
   margin-top: var(--space-1);
 }
+
+/* Onglet Armes : cartes repliables */
+.weapons-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.weapons-toolbar h3 {
+  margin: 0;
+}
+
+.weapons-toolbar .add-module {
+  margin: 0;
+}
+
+.weapons-toolbar .add-module.grow {
+  flex: 1 1 22rem;
+}
+
+.weapon-cards > li.weapon-card {
+  padding: 0;
+  border: 0;
+  margin-bottom: var(--space-2);
+}
+
+.weapon-card > .collapsible {
+  border-left: 4px solid var(--danger);
+}
+
+.weapon-card.distance > .collapsible {
+  border-left-color: var(--accent);
+}
+
+.weapon-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  color: var(--text);
+}
+
+.weapon-summary-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weapon-summary-profile strong {
+  font-size: var(--fs-md);
+}
+
+.legend-chip {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.weapon-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.weapon-effects {
+  margin-top: var(--space-1);
+}
+
+.collapsible.nested {
+  background: var(--surface);
+}
+
+/* Onglet Progression */
+.soldes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+button.blocked {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.legend-state {
+  display: inline-block;
+  padding: 0 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+}
+
+.legend-state.warn {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.legend-state.blocked {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.prog-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.history-kind {
+  justify-self: start;
+  padding: 0 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.history-kind.mission { border-color: var(--ok); color: var(--ok); }
+.history-kind.aspect,
+.history-kind.carac { border-color: var(--accent); color: var(--accent); }
+.history-kind.od,
+.history-kind.module,
+.history-kind.arme,
+.history-kind.legende,
+.history-kind.evolution,
+.history-kind.achat { border-color: var(--gold); color: var(--gold); }
