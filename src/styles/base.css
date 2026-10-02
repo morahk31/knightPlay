@@ -2180,6 +2180,41 @@ button.warn {
   margin-right: 0.35rem;
 }
 
+.recap-effects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.88rem;
+}
+
+.recap-effect {
+  padding: 0.3rem 0 0.3rem 0.6rem;
+  border-left: 3px solid var(--border);
+}
+
+.recap-effect dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.5rem;
+}
+
+.recap-effect dd {
+  margin: 0.15rem 0 0;
+}
+
+.recap-effect-armes {
+  font-size: 0.8rem;
+}
+
+.recap .badge.calcule {
+  padding: 0 0.45rem;
+  font-size: 0.72rem;
+  border-color: var(--c-energie);
+  color: var(--c-energie);
+}
+
 .rules-memo {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -2259,6 +2294,7 @@ button.warn {
   .vital,
   .recap-block,
   .attack-card,
+  .recap-effect,
   .recap-alert {
     background: #fff !important;
     box-shadow: none !important;

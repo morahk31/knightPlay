@@ -7,7 +7,7 @@ import { armorStatus, effectiveCdf, effectiveOd, hasArmor } from '../rules/armor
 import { computeDerived, gaugeTotals } from '../rules/derived'
 import { combatDefenses, findStyle } from '../rules/styles'
 import { effectDescription, effectLabel } from '../rules/effects'
-import { attackSummaries, recapAlerts } from '../rules/recap'
+import { attackSummaries, recapAlerts, recapEffects } from '../rules/recap'
 import { formatDice } from '../data/weapons'
 import { OD_EFFECTS } from '../data/overdrives'
 import { TOUS_AVANTAGES, TOUS_INCONVENIENTS } from '../data/creation'
@@ -25,6 +25,7 @@ const derived = computed(() => (c.value ? computeDerived(c.value, rules.value) :
 const defenses = computed(() => (c.value ? combatDefenses(c.value, rules.value) : null))
 const alerts = computed(() => (c.value ? recapAlerts(c.value, rules.value) : []))
 const attacks = computed(() => (c.value ? attackSummaries(c.value, rules.value) : []))
+const effects = computed(() => recapEffects(attacks.value, rulesStore.catalogs.effets))
 const status = computed(() => (c.value ? armorStatus(c.value) : 'aucune'))
 const style = computed(() => findStyle(c.value?.combat.style ?? 'standard'))
 
@@ -185,6 +186,22 @@ function imprimer(): void {
           <p class="attack-base muted">Arme : {{ formatDice(a.profil.degats) }} / {{ formatDice(a.profil.violence) }}</p>
         </div>
       </div>
+    </section>
+
+    <!-- Effets des armes -->
+    <section v-if="effects.length" class="recap-block" aria-labelledby="recap-effects">
+      <h3 id="recap-effects">📖 Effets des armes</h3>
+      <dl class="recap-effects" data-testid="recap-effects">
+        <div v-for="e in effects" :key="`${e.id}-${e.label}`" class="recap-effect">
+          <dt>
+            <strong>{{ e.valeurs.length ? `${e.label} ${e.valeurs.join(' / ')}` : e.label }}</strong>
+            <span v-if="e.calcule" class="badge calcule">calculé</span>
+            <span class="recap-effect-armes muted">{{ e.armes.join(' · ') }}</span>
+          </dt>
+          <dd>{{ e.description }}</dd>
+        </div>
+      </dl>
+      <p class="hint">« calculé » : l’outil applique l’effet dans le panneau Attaquer (pas dans les dégâts ci-dessus).</p>
     </section>
 
     <div class="recap-columns">
