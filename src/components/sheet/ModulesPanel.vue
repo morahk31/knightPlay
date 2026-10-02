@@ -5,6 +5,8 @@ import { moduleCostToLevel } from '../../data/modules'
 import { useRulesStore } from '../../stores/rules'
 import { SLOT_LABELS, SLOT_ZONES, hasArmor, slotUsage } from '../../rules/armor'
 import type { InstalledModule, SlotZone } from '../../rules/types'
+import Collapsible from '../ui/Collapsible.vue'
+import SlotMap from './SlotMap.vue'
 
 const store = useCharactersStore()
 const rulesStore = useRulesStore()
@@ -67,11 +69,7 @@ function levelsOf(m: InstalledModule): number {
     <h3 id="modules-title">Modules</h3>
     <p v-if="!hasArmor(c)" class="hint">Choisissez d’abord une méta-armure pour contrôler les slots.</p>
 
-    <div v-if="usage" class="slot-summary" data-testid="modules-slot-summary">
-      <span v-for="zone in SLOT_ZONES" :key="zone" :class="{ warn: usage[zone].over }">
-        {{ SLOT_LABELS[zone] }} {{ usage[zone].used }}/{{ usage[zone].max }}
-      </span>
-    </div>
+    <div v-if="usage" data-testid="modules-slot-summary"><SlotMap /></div>
 
     <form class="add-module" @submit.prevent="add()">
       <select v-model="selectedId" data-testid="module-select" @change="selectedLevel = 1; overflowMessage = null">
@@ -102,34 +100,38 @@ function levelsOf(m: InstalledModule): number {
 
     <ul class="module-list" data-testid="module-list">
       <li v-for="m in c.modules" :key="m.uid" data-testid="module-item">
-        <div class="module-head">
-          <input class="module-name" :value="m.nom" aria-label="Nom du module"
-            @change="store.updateModule(m.uid, { nom: ($event.target as HTMLInputElement).value })" />
-          <label class="inline">
-            Niv
-            <select :value="m.niveau" :data-testid="`module-${m.uid}-level`"
-              @change="store.setModuleLevel(m.uid, Number(($event.target as HTMLSelectElement).value))">
-              <option v-for="n in levelsOf(m)" :key="n" :value="n">{{ n }}</option>
-            </select>
-          </label>
-          <label class="inline">
-            PE
-            <input type="number" min="0" placeholder="—" :value="m.energie ?? ''" @change="setEnergy(m, $event)" />
-          </label>
-          <button type="button" class="ghost" :aria-label="`Retirer ${m.nom}`" data-testid="module-remove" @click="store.removeModule(m.uid)">✕</button>
-        </div>
-        <div class="hint">{{ m.activation }}<template v-if="m.duree"> · {{ m.duree }}</template> · {{ slotsText(m) }}</div>
-        <textarea class="module-effect" rows="1" :value="m.effet" aria-label="Effet"
-          @change="store.updateModule(m.uid, { effet: ($event.target as HTMLTextAreaElement).value })"></textarea>
-        <details>
-          <summary>Slots</summary>
-          <div class="slots-inline">
-            <label v-for="zone in SLOT_ZONES" :key="zone">
-              {{ SLOT_LABELS[zone] }}
-              <input type="number" min="0" :value="m.slots[zone] ?? 0" @change="setSlot(m, zone, $event)" />
-            </label>
+        <Collapsible :title="m.nom" :storage-key="`module.${m.uid}`">
+          <template #summary>
+            <span class="module-summary" data-testid="module-summary">Niv {{ m.niveau }} · {{ m.energie === null ? 'sans PE' : `${m.energie} PE` }} · {{ slotsText(m) }}</span>
+          </template>
+          <div class="module-body">
+            <div class="module-head">
+              <input class="module-name" :value="m.nom" aria-label="Nom du module"
+                @change="store.updateModule(m.uid, { nom: ($event.target as HTMLInputElement).value })" />
+              <label class="inline">
+                Niv
+                <select :value="m.niveau" :data-testid="`module-${m.uid}-level`"
+                  @change="store.setModuleLevel(m.uid, Number(($event.target as HTMLSelectElement).value))">
+                  <option v-for="n in levelsOf(m)" :key="n" :value="n">{{ n }}</option>
+                </select>
+              </label>
+              <label class="inline">
+                PE
+                <input type="number" min="0" placeholder="—" class="w-3ch" :value="m.energie ?? ''" @change="setEnergy(m, $event)" />
+              </label>
+              <button type="button" class="ghost" :aria-label="`Retirer ${m.nom}`" data-testid="module-remove" @click="store.removeModule(m.uid)">✕</button>
+            </div>
+            <div class="hint">{{ m.activation }}<template v-if="m.duree"> · {{ m.duree }}</template></div>
+            <textarea class="module-effect" rows="2" :value="m.effet" aria-label="Effet"
+              @change="store.updateModule(m.uid, { effet: ($event.target as HTMLTextAreaElement).value })"></textarea>
+            <div class="slots-inline" aria-label="Slots occupés">
+              <label v-for="zone in SLOT_ZONES" :key="zone">
+                {{ SLOT_LABELS[zone] }}
+                <input type="number" min="0" class="w-2ch" :value="m.slots[zone] ?? 0" @change="setSlot(m, zone, $event)" />
+              </label>
+            </div>
           </div>
-        </details>
+        </Collapsible>
       </li>
       <li v-if="!c.modules.length" class="muted">Aucun module installé.</li>
     </ul>

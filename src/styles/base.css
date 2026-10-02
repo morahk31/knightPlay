@@ -889,105 +889,210 @@ button.small {
   margin-bottom: 0.6rem;
 }
 
-.armor-head label,
-.armor-stats label {
+.armor-head label {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 
+/* Bascule Déployée / Repliée */
 .armor-state {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.armor-state button {
+  border: 0;
+  border-radius: 0;
 }
 
 .armor-state button.active {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
 }
 
-.status {
-  margin-left: 0.4rem;
-  font-size: 0.85rem;
+.status-chip,
+.verify-chip {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
 }
 
-.status.repliee {
-  color: var(--gold);
-}
-
-.status.deployee {
+.status-chip.deployee {
+  border-color: var(--ok);
   color: var(--ok);
 }
 
-.notice-inline {
-  margin: 0.3rem 0 0.6rem;
-  color: var(--gold);
-  font-size: 0.88rem;
+.status-chip.repliee {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
-.armor-stats {
+.verify-chip {
+  margin-left: auto;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Valeurs de l'armure */
+.armor-tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-4);
 }
 
-.armor-stats input {
-  width: 6rem;
-}
-
-.armor-stats small {
+.tile-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 
-.slots-grid {
+.armor-columns {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
 }
 
-.slots-grid label {
+/* Silhouette des slots */
+.slot-map {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-areas:
+    '. tete tete .'
+    'brasG torse torse brasD'
+    '. jambeG jambeD .';
+  gap: var(--space-2);
+}
+
+.slot-zone {
   display: flex;
   flex-direction: column;
-  font-size: 0.85rem;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.zone-tete { grid-area: tete; }
+.zone-brasG { grid-area: brasG; }
+.zone-brasD { grid-area: brasD; }
+.zone-torse { grid-area: torse; min-height: 5.5rem; }
+.zone-jambeG { grid-area: jambeG; }
+.zone-jambeD { grid-area: jambeD; }
+
+.slot-zone-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.slot-zone-name {
+  font-size: var(--fs-sm);
+}
+
+/* Silhouette modifiable (onglet Méta-armure) : nom au-dessus du compteur */
+.slot-map.editable .slot-zone-head {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.slot-zone-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.slot-zone-count .number-field {
+  height: 1.6rem;
+}
+
+.slot-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.slot-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.slot-zone.full .slot-bar span {
+  background: var(--gold);
+}
+
+.slot-zone.over {
+  border-color: var(--danger);
+  background: rgba(229, 83, 75, 0.12);
+}
+
+.slot-zone.over .slot-bar span {
+  background: var(--danger);
+}
+
+.slot-zone.over .slot-zone-count {
+  color: var(--danger);
+}
+
+.slot-zone-modules {
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 
-.slot-line {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--text);
-}
-
-.slot-line input {
-  width: 3rem;
-}
-
+/* OD de base */
 .armor-od {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
 }
 
 .armor-od-col {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.85rem;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  min-width: 0;
+}
+
+.armor-od-col strong {
+  color: var(--gold);
 }
 
 .armor-od-col label {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-1);
   color: var(--muted);
 }
 
-.armor-od-col input {
-  width: 2.6rem;
+.armor-od-col label.on {
+  color: var(--text);
+}
+
+.armor-od-col label.on .number-field {
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 .checks {
@@ -995,8 +1100,6 @@ button.small {
   gap: 1rem;
 }
 
-.capacities,
-.evolutions,
 .module-list,
 .activables {
   list-style: none;
@@ -1004,26 +1107,9 @@ button.small {
   padding: 0;
 }
 
-.capacities li,
 .module-list li {
   padding: 0.35rem 0;
   border-bottom: 1px solid var(--border);
-}
-
-.evolutions li {
-  display: flex;
-  gap: 0.6rem;
-  padding: 0.2rem 0;
-  color: var(--muted);
-}
-
-.evolutions li.unlocked {
-  color: var(--ok);
-}
-
-.evo-pg {
-  min-width: 6.5rem;
-  font-weight: 600;
 }
 
 label.inline {
@@ -1041,19 +1127,6 @@ label.inline input {
 
 .panel h4 label.inline {
   margin-left: 1rem;
-}
-
-.slot-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
-}
-
-.slot-summary .warn {
-  color: var(--danger);
 }
 
 .add-module {
@@ -1120,6 +1193,123 @@ label.inline input {
   flex-direction: column;
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+/* Capacités de l'armure */
+.capacity-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.capacity-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.capacity-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.pe-badge {
+  flex-shrink: 0;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.capacity-meta {
+  font-size: var(--fs-xs);
+}
+
+.capacity-effect {
+  font-size: var(--fs-sm);
+}
+
+/* Évolutions en frise */
+.evolutions-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.evolutions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-2);
+}
+
+.evolutions li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-top: 3px solid var(--border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.evolutions li.acquise {
+  border-top-color: var(--ok);
+  color: var(--text);
+}
+
+.evolutions li.achat {
+  border-top-color: var(--accent);
+}
+
+.evo-pg {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.evo-state {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.evolutions li.acquise .evo-state {
+  color: var(--ok);
+}
+
+.evolutions li button {
+  align-self: flex-start;
+}
+
+/* Modules repliables */
+.module-list > li[data-testid='module-item'] {
+  padding: 0;
+  border: 0;
+  margin-bottom: var(--space-2);
+}
+
+.module-summary {
+  font-size: var(--fs-sm);
+}
+
+.module-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 /* Panneau énergie */

@@ -3,19 +3,11 @@ import { computed } from 'vue'
 import { useCharactersStore } from '../../stores/characters'
 import { useRulesStore } from '../../stores/rules'
 import { ASPECTS, CARAC_LABELS } from '../../rules/catalog'
-import {
-  CUSTOM_ARMOR,
-  NO_ARMOR,
-  SLOT_LABELS,
-  SLOT_ZONES,
-  armorStatus,
-  armorTotals,
-  effectiveCdf,
-  hasArmor,
-  isEvolutionUnlocked,
-  slotUsage,
-} from '../../rules/armor'
-import type { AspectId, CaracId, SlotZone } from '../../rules/types'
+import { CUSTOM_ARMOR, NO_ARMOR, armorStatus, armorTotals, effectiveCdf, hasArmor, isEvolutionUnlocked } from '../../rules/armor'
+import type { AspectId, CaracId } from '../../rules/types'
+import NumberField from '../ui/NumberField.vue'
+import StatTile from '../ui/StatTile.vue'
+import SlotMap from './SlotMap.vue'
 
 const store = useCharactersStore()
 const rulesStore = useRulesStore()
@@ -23,20 +15,10 @@ const c = computed(() => store.active)
 
 const generations = computed(() => [...new Set(rulesStore.catalogs.armures.map((a) => a.generation))].sort())
 const totals = computed(() => (c.value ? armorTotals(c.value) : null))
-const usage = computed(() => (c.value ? slotUsage(c.value) : null))
 const status = computed(() => (c.value ? armorStatus(c.value) : 'aucune'))
-
-function num(event: Event): number {
-  return Math.max(0, Math.trunc(Number((event.target as HTMLInputElement).value) || 0))
-}
 
 function onModel(event: Event): void {
   store.setArmorModel((event.target as HTMLSelectElement).value)
-}
-
-function setSlot(zone: SlotZone, event: Event): void {
-  if (!c.value) return
-  store.updateArmor({ slots: { ...c.value.armure.slots, [zone]: num(event) } })
 }
 
 function toggleWarriorType(type: AspectId, checked: boolean): void {
@@ -50,12 +32,22 @@ function toggleWarriorType(type: AspectId, checked: boolean): void {
 function odOf(carac: CaracId): number {
   return c.value?.armure.od[carac] ?? 0
 }
+
+/** État d'une évolution : acquise (débloquée par les PG ou achetée), à acheter, ou à venir. */
+function evolutionState(e: { pg: number; achetee?: boolean; possedee?: boolean }): 'acquise' | 'achat' | 'avenir' {
+  if (!c.value) return 'avenir'
+  if (e.possedee || isEvolutionUnlocked(c.value, e.pg, e.achetee)) return 'acquise'
+  return e.achetee ? 'achat' : 'avenir'
+}
+
+const EVOLUTION_LABEL = { acquise: 'Acquise', achat: 'À acheter', avenir: 'À débloquer' } as const
 </script>
 
 <template>
-  <section v-if="c" class="panel" aria-labelledby="armor-title" data-testid="armor-panel">
-    <h3 id="armor-title">Méta-armure</h3>
+  <section v-if="c" class="panel armor-panel" aria-labelledby="armor-title" data-testid="armor-panel">
+    <h3 id="armor-title" class="sr-only">Méta-armure</h3>
 
+    <!-- (1) Modèle, nom, état -->
     <div class="armor-head">
       <label>
         Modèle
@@ -73,12 +65,17 @@ function odOf(carac: CaracId): number {
           <input :value="c.armure.nom" data-testid="armor-name" @change="store.updateArmor({ nom: ($event.target as HTMLInputElement).value })" />
         </label>
         <div class="armor-state" role="group" aria-label="État de l’armure">
-          <button type="button" data-testid="armor-deploy" :class="{ active: c.armure.etat === 'deployee' }" @click="store.setArmorEtat('deployee')">Déployée</button>
-          <button type="button" data-testid="armor-fold" :class="{ active: c.armure.etat === 'repliee' }" @click="store.setArmorEtat('repliee')">Repliée</button>
-          <span class="status" :class="status" data-testid="armor-status">
-            {{ status === 'deployee' ? 'Déployée' : 'Repliée — combinaison Guardian' }}
-          </span>
+          <button type="button" data-testid="armor-deploy" :class="{ active: c.armure.etat === 'deployee' }" :aria-pressed="c.armure.etat === 'deployee'"
+            @click="store.setArmorEtat('deployee')">Déployée</button>
+          <button type="button" data-testid="armor-fold" :class="{ active: c.armure.etat === 'repliee' }" :aria-pressed="c.armure.etat === 'repliee'"
+            @click="store.setArmorEtat('repliee')">Repliée</button>
         </div>
+        <span class="status-chip" :class="status" data-testid="armor-status">
+          {{ status === 'deployee' ? 'Déployée' : 'Repliée — combinaison Guardian' }}
+        </span>
+        <span v-if="c.armure.aVerifier" class="verify-chip" data-testid="armor-verify" title="Toutes les valeurs restent modifiables.">
+          Slots et OD extraits de schémas : à vérifier
+        </span>
       </template>
     </div>
 
@@ -87,56 +84,46 @@ function odOf(carac: CaracId): number {
     </p>
 
     <template v-else>
-      <p v-if="c.armure.aVerifier" class="notice-inline" data-testid="armor-verify">
-        ⚠ Slots et OD de base extraits de schémas du livre : à vérifier. Toutes les valeurs sont modifiables.
-      </p>
       <p v-if="c.armure.notes" class="hint">{{ c.armure.notes }}</p>
 
-      <div class="armor-stats">
-        <label>
-          PA de base
-          <input type="number" min="0" data-testid="armor-pa" :value="c.armure.pa" @change="store.updateArmor({ pa: num($event) })" />
-          <small>total {{ totals?.pa }}</small>
-        </label>
-        <label>
-          PE de base
-          <input type="number" min="0" data-testid="armor-pe" :value="c.armure.pe" @change="store.updateArmor({ pe: num($event) })" />
-          <small>total {{ totals?.pe }}</small>
-        </label>
-        <label>
-          CdF de base
-          <input type="number" min="0" data-testid="armor-cdf" :value="c.armure.cdf" @change="store.updateArmor({ cdf: num($event) })" />
-          <small>effectif {{ effectiveCdf(c, store.rules) }}</small>
-        </label>
-        <label>
-          PA Guardian
-          <input type="number" min="0" :max="store.rules.armure.guardianPa" data-testid="armor-guardian" :value="c.armure.guardianPa"
-            @change="store.updateArmor({ guardianPa: Math.min(num($event), store.rules.armure.guardianPa) })" />
-          <small>/ {{ store.rules.armure.guardianPa }} · CdF {{ store.rules.armure.guardianCdf }}</small>
-        </label>
+      <!-- (2) Valeurs de l'armure -->
+      <div class="armor-tiles">
+        <StatTile label="Points d’armure" :value="totals!.pa" :note="totals!.pa !== c.armure.pa ? 'total, modules compris' : 'total'" accent="#9aa5b8">
+          <label class="tile-field">base <NumberField :model-value="c.armure.pa" :digits="3" label="PA de base" data-testid="armor-pa"
+            @update:model-value="store.updateArmor({ pa: $event })" /></label>
+        </StatTile>
+        <StatTile label="Points d’énergie" :value="totals!.pe" :note="totals!.pe !== c.armure.pe ? 'total, modules compris' : 'total'" accent="accent">
+          <label class="tile-field">base <NumberField :model-value="c.armure.pe" :digits="3" label="PE de base" data-testid="armor-pe"
+            @update:model-value="store.updateArmor({ pe: $event })" /></label>
+        </StatTile>
+        <StatTile label="Champ de force" :value="effectiveCdf(c, store.rules)" note="effectif" accent="gold">
+          <label class="tile-field">base <NumberField :model-value="c.armure.cdf" :digits="3" label="CdF de base" data-testid="armor-cdf"
+            @update:model-value="store.updateArmor({ cdf: $event })" /></label>
+        </StatTile>
+        <StatTile label="Guardian" :value="`${c.armure.guardianPa} PA`" :note="`sur ${store.rules.armure.guardianPa} · CdF ${store.rules.armure.guardianCdf} quand repliée`" accent="muted">
+          <label class="tile-field">PA <NumberField :model-value="c.armure.guardianPa" :max="store.rules.armure.guardianPa" label="PA de la Guardian"
+            data-testid="armor-guardian" @update:model-value="store.updateArmor({ guardianPa: $event })" /></label>
+        </StatTile>
       </div>
 
-      <h4>Slots</h4>
-      <div class="slots-grid" data-testid="armor-slots">
-        <label v-for="zone in SLOT_ZONES" :key="zone" :class="{ warn: usage?.[zone].over }" :data-testid="`slot-${zone}`">
-          {{ SLOT_LABELS[zone] }}
-          <span class="slot-line">
-            <span :data-testid="`slot-${zone}-used`">{{ usage?.[zone].used }}</span> /
-            <input type="number" min="0" :value="c.armure.slots[zone]" @change="setSlot(zone, $event)" />
-            <small v-if="usage && usage[zone].max !== c.armure.slots[zone]">({{ usage[zone].max }})</small>
-          </span>
-        </label>
-      </div>
-
-      <h4>Overdrives de base de l’armure</h4>
-      <div class="armor-od">
-        <div v-for="a in ASPECTS" :key="a.id" class="armor-od-col">
-          <strong>{{ a.nom }}</strong>
-          <label v-for="carac in a.caracs" :key="carac">
-            {{ CARAC_LABELS[carac] }}
-            <input type="number" min="0" :data-testid="`armor-od-${carac}`" :value="odOf(carac)"
-              @change="store.setArmorOd(carac, num($event))" />
-          </label>
+      <!-- (3)(4) Slots et OD de base -->
+      <div class="armor-columns">
+        <div>
+          <h4>Slots <small class="muted">· {{ c.modules.length }} module{{ c.modules.length > 1 ? 's' : '' }}</small></h4>
+          <div data-testid="armor-slots"><SlotMap editable /></div>
+        </div>
+        <div>
+          <h4>Overdrives de base de l’armure</h4>
+          <div class="armor-od">
+            <div v-for="a in ASPECTS" :key="a.id" class="armor-od-col">
+              <strong>{{ a.nom }}</strong>
+              <label v-for="carac in a.caracs" :key="carac" :class="{ on: odOf(carac) > 0 }">
+                {{ CARAC_LABELS[carac] }}
+                <NumberField :model-value="odOf(carac)" :label="`OD de base ${CARAC_LABELS[carac]}`" :data-testid="`armor-od-${carac}`"
+                  @update:model-value="store.setArmorOd(carac, $event)" />
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -151,26 +138,34 @@ function odOf(carac: CaracId): number {
         </div>
       </template>
 
+      <!-- (5) Capacités -->
       <h4>Capacités</h4>
-      <ul class="capacities">
-        <li v-for="cap in c.armure.capacites" :key="cap.id">
-          <strong>{{ cap.nom }}</strong> — <span class="muted">{{ cap.energie }} · {{ cap.activation }} · {{ cap.duree }}</span>
-          <div class="hint">{{ cap.effet }}</div>
-        </li>
-        <li v-if="!c.armure.capacites.length" class="muted">Aucune capacité renseignée.</li>
-      </ul>
+      <div class="capacity-cards" data-testid="armor-capacities">
+        <div v-for="cap in c.armure.capacites" :key="cap.id" class="capacity-card">
+          <div class="capacity-head">
+            <strong>{{ cap.nom }}</strong>
+            <span class="pe-badge">{{ cap.energie }}</span>
+          </div>
+          <span class="muted capacity-meta">{{ cap.activation }}<template v-if="cap.duree"> · {{ cap.duree }}</template></span>
+          <span class="capacity-effect">{{ cap.effet }}</span>
+        </div>
+        <p v-if="!c.armure.capacites.length" class="muted">Aucune capacité renseignée.</p>
+      </div>
 
-      <h4>
+      <!-- (6) Évolutions -->
+      <h4 class="evolutions-head">
         Évolutions
         <label class="inline">
-          PG totaux
-          <input type="number" min="0" data-testid="pg-total" :value="c.progression.pgTotal" @change="store.setPgTotal(num($event))" />
+          PG gagnés
+          <NumberField :model-value="c.progression.pgTotal" :digits="4" label="PG gagnés (total)" data-testid="pg-total"
+            @update:model-value="store.setPgTotal($event)" />
         </label>
       </h4>
       <ul class="evolutions" data-testid="armor-evolutions">
-        <li v-for="(e, i) in c.armure.evolutions" :key="i" :class="{ unlocked: e.possedee || isEvolutionUnlocked(c, e.pg, e.achetee) }">
-          <span class="evo-pg">{{ e.achetee ? `${e.pg} PG (achat)` : `${e.pg} PG` }}</span>
-          <span>{{ e.possedee || isEvolutionUnlocked(c, e.pg, e.achetee) ? '✓' : '·' }} {{ e.effet }}</span>
+        <li v-for="(e, i) in c.armure.evolutions" :key="i" :class="[evolutionState(e), { unlocked: evolutionState(e) === 'acquise' }]">
+          <span class="evo-pg">{{ e.pg }} PG</span>
+          <span class="evo-state">{{ EVOLUTION_LABEL[evolutionState(e)] }}</span>
+          <span class="evo-effect">{{ e.effet }}</span>
           <button v-if="e.achetee && !e.possedee" type="button" class="small-inline" :data-testid="`evolution-buy-${i}`"
             :disabled="c.progression.pgSolde < e.pg" :title="c.progression.pgSolde < e.pg ? 'PG insuffisants' : ''"
             @click="store.buyEvolution(i)">Acheter</button>
