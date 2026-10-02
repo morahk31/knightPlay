@@ -1,0 +1,132 @@
+/* Composants communs de la fiche (src/components/ui) */
+
+/* Bloc titré */
+.section-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.section-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.section-card-title {
+  margin: 0;
+  font-size: var(--fs-md);
+  color: var(--accent);
+}
+
+.section-card-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+}
+
+.section-card-subtitle {
+  margin: 0.1rem 0 0;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.section-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Bloc repliable */
+.collapsible {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.collapsible-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.collapsible-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
+}
+
+.collapsible-caret {
+  color: var(--muted);
+  width: 1ch;
+}
+
+.collapsible.open .collapsible-caret {
+  color: var(--accent);
+}
+
+.collapsible-summary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.collapsible-body {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+/* Champ numérique compact */
+.number-field {
+  height: 1.9rem;
+}
+
+/* Tuile de valeur */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--tile-accent, var(--accent));
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.stat-tile-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.stat-tile-value {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.stat-tile-note {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.stat-tile-extra {
+  margin-top: var(--space-1);
+}
