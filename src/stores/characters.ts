@@ -7,7 +7,10 @@ import type {
   Character,
   InstalledModule,
   OwnedWeapon,
+  ProgressionState,
   StyleId,
+  TransactionKind,
+  TransactionSnapshot,
   WeaponProfile,
   DerivedId,
   DerivedSource,
@@ -17,7 +20,7 @@ import type {
 } from '../rules/types'
 import { blankSheet } from '../rules/catalog'
 import { clampGauges, gaugeTotals } from '../rules/derived'
-import { CUSTOM_ARMOR, NO_ARMOR, armorFromDef, moduleFromDef, noArmor, slotOverflow } from '../rules/armor'
+import { CUSTOM_ARMOR, NO_ARMOR, SLOT_LABELS, armorFromDef, moduleFromDef, noArmor, slotOverflow } from '../rules/armor'
 import {
   foldRestEnergy,
   resetNods,
@@ -28,7 +31,14 @@ import {
   type NodKind,
 } from '../rules/energy'
 import { findArmor } from '../data/armors'
-import { findModule } from '../data/modules'
+import { findModule, moduleCostToLevel } from '../data/modules'
+import {
+  checkAspect,
+  checkCarac,
+  checkOd,
+  checkPurchase,
+  type UpgradeCheck,
+} from '../rules/progression'
 import { findWeapon } from '../data/weapons'
 import { applySoak, restoreSoakState, soak, type IncomingHit, type SoakResult, type SoakState } from '../rules/soak'
 import { defaultRules } from '../config/defaultRules'
@@ -493,6 +503,174 @@ export const useCharactersStore = defineStore('characters', () => {
     return true
   }
 
+  // --- Progression : PX, PG et historique (phase 7) ---
+
+  function snapshotOf(c: Character): TransactionSnapshot {
+    const { historique: _historique, ...progression } = c.progression
+    return JSON.parse(JSON.stringify({ aspects: c.aspects, caracs: c.caracs, modules: c.modules, armes: c.armes, progression }))
+  }
+
+  /**
+   * Exécute un changement de progression et l'inscrit dans l'historique.
+   * Les variations de PX et de PG sont appliquées après `change`.
+   */
+  function transact(
+    kind: TransactionKind,
+    libelle: string,
+    delta: { px?: number; pg?: number; pgTotal?: number; pxTotal?: number },
+    change: (c: Character) => void,
+    outrepasse = false,
+  ): void {
+    const c = active.value
+    if (!c) return
+    const avant = snapshotOf(c)
+    change(c)
+    mutateActive((x) => {
+      const p = x.progression
+      p.pxActuel += delta.px ?? 0
+      p.pxTotal += delta.pxTotal ?? 0
+      p.pgSolde += delta.pg ?? 0
+      p.pgTotal = Math.max(0, p.pgTotal + (delta.pgTotal ?? 0))
+      p.historique.unshift({
+        id: newId(),
+        at: new Date().toISOString(),
+        kind,
+        libelle,
+        px: delta.px ?? 0,
+        pg: delta.pg ?? 0,
+        pgTotal: delta.pgTotal ?? 0,
+        ...(outrepasse ? { outrepasse: true } : {}),
+        avant,
+      })
+    })
+  }
+
+  /** Fin de mission : PX et PG gagnés (actuels et totaux), aspects de nouveau augmentables. */
+  function endMission(libelle: string, px: number, pg: number): void {
+    const gainPx = toNonNegativeInt(px)
+    const gainPg = toNonNegativeInt(pg)
+    transact('mission', libelle.trim() || 'Fin de mission', { px: gainPx, pxTotal: gainPx, pg: gainPg, pgTotal: gainPg }, () =>
+      mutateActive((x) => {
+        x.progression.aspectsMission = []
+      }),
+    )
+  }
+
+  /** Applique un achat si le contrôle le permet (ou s'il est forcé et forçable). */
+  function attempt(check: UpgradeCheck, force: boolean, kind: TransactionKind, change: (c: Character) => void): UpgradeCheck {
+    if (!check.ok && !(force && check.forcable)) return check
+    const cost = { px: check.devise === 'PX' ? -check.cout : 0, pg: check.devise === 'PG' ? -check.cout : 0 }
+    const libelle = kind === 'module' || kind === 'arme' || kind === 'achat' ? check.libelle : `${check.libelle} ${check.de} → ${check.vers}`
+    transact(kind, libelle, cost, change, !check.ok)
+    return check
+  }
+
+  function buyAspect(aspect: AspectId, force = false): UpgradeCheck | null {
+    const c = active.value
+    if (!c) return null
+    return attempt(checkAspect(c, aspect, rules.value), force, 'aspect', () =>
+      mutateActive((x) => {
+        x.aspects[aspect] += 1
+        if (!x.progression.aspectsMission.includes(aspect)) x.progression.aspectsMission.push(aspect)
+        clampGauges(x, rules.value)
+      }),
+    )
+  }
+
+  function buyCarac(carac: CaracId, force = false): UpgradeCheck | null {
+    const c = active.value
+    if (!c) return null
+    return attempt(checkCarac(c, carac, rules.value), force, 'carac', () =>
+      mutateActive((x) => {
+        x.caracs[carac].val += 1
+        clampGauges(x, rules.value)
+      }),
+    )
+  }
+
+  function buyOd(carac: CaracId, force = false): UpgradeCheck | null {
+    const c = active.value
+    if (!c) return null
+    return attempt(checkOd(c, carac, rules.value), force, 'od', () =>
+      mutateActive((x) => {
+        x.caracs[carac].od += 1
+        clampGauges(x, rules.value)
+      }),
+    )
+  }
+
+  /** Achète et installe un module (coût cumulé jusqu'au niveau voulu). */
+  function buyModule(moduleId: string, niveau: number, force = false): UpgradeCheck | null {
+    const c = active.value
+    const def = findModule(moduleId)
+    if (!c || !def) return null
+    const level = Math.min(Math.max(1, Math.trunc(niveau)), def.niveaux.length)
+    const dispo = def.niveaux[level - 1]!.dispo
+    const check = checkPurchase(c, `${def.nom} niv. ${level}`, moduleCostToLevel(def, level), dispo, rules.value)
+    const overflow = slotOverflow(c, def.slots)
+    if (overflow.length && !rules.value.armure.depassementSlots) {
+      check.raisons.unshift({ texte: `Slots insuffisants : ${overflow.map((z) => SLOT_LABELS[z]).join(', ')}`, bloquant: false })
+      check.ok = false
+      check.forcable = check.raisons.every((r) => !r.bloquant)
+    }
+    return attempt(check, force, 'module', () => {
+      addModule(moduleId, level, true)
+    })
+  }
+
+  /** Achète une arme et la range dans le rack. */
+  function buyWeapon(weaponId: string, force = false): UpgradeCheck | null {
+    const c = active.value
+    const def = findWeapon(weaponId)
+    if (!c || !def) return null
+    const check = checkPurchase(c, def.nom, def.pg, def.dispo, rules.value)
+    if (c.armes.length >= rules.value.combat.rackMax) {
+      check.raisons.unshift({ texte: `Rack plein (${rules.value.combat.rackMax} armes)`, bloquant: true })
+      check.ok = false
+      check.forcable = false
+    }
+    return attempt(check, force, 'arme', () => {
+      addWeapon(weaponId)
+    })
+  }
+
+  /** Autre achat en PG (implant, thérapie, amélioration…). */
+  function buyOther(libelle: string, cout: number, force = false): UpgradeCheck | null {
+    const c = active.value
+    if (!c) return null
+    return attempt(checkPurchase(c, libelle.trim() || 'Achat', cout, 'standard', rules.value), force, 'achat', () => {})
+  }
+
+  /** Correction manuelle des compteurs, tracée dans l'historique. */
+  function adjustProgression(field: 'pxActuel' | 'pxTotal' | 'pgSolde' | 'pgTotal', value: number): void {
+    const c = active.value
+    if (!c) return
+    const v = toNonNegativeInt(value)
+    const diff = v - c.progression[field]
+    if (!diff) return
+    const labels: Record<typeof field, string> = { pxActuel: 'PX actuels', pxTotal: 'PX totaux', pgSolde: 'PG disponibles', pgTotal: 'PG totaux' }
+    const delta = { pxActuel: { px: diff }, pxTotal: { pxTotal: diff }, pgSolde: { pg: diff }, pgTotal: { pgTotal: diff } }[field]
+    transact('ajustement', `Ajustement ${labels[field]} : ${c.progression[field]} → ${v}`, delta, () => {})
+  }
+
+  /** Annule la dernière transaction : valeurs et soldes d'avant. */
+  function undoTransaction(): boolean {
+    const c = active.value
+    const last = c?.progression.historique[0]
+    if (!c || !last) return false
+    mutateActive((x) => {
+      const historique = x.progression.historique.slice(1)
+      const avant = JSON.parse(JSON.stringify(last.avant)) as TransactionSnapshot
+      x.aspects = avant.aspects
+      x.caracs = avant.caracs
+      x.modules = avant.modules
+      x.armes = avant.armes
+      x.progression = { ...(avant.progression as Omit<ProgressionState, 'historique'>), historique }
+      clampGauges(x, rules.value)
+    })
+    return true
+  }
+
   function setArmorEtat(etat: 'deployee' | 'repliee'): void {
     mutateActive((c) => {
       c.armure.etat = etat
@@ -563,5 +741,14 @@ export const useCharactersStore = defineStore('characters', () => {
     takeHit,
     undoSoak,
     ignoreAgony,
+    endMission,
+    buyAspect,
+    buyCarac,
+    buyOd,
+    buyModule,
+    buyWeapon,
+    buyOther,
+    adjustProgression,
+    undoTransaction,
   }
 })

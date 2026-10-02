@@ -211,12 +211,43 @@ export interface ArmorState {
 }
 
 /** Points d'expérience et de gloire (historique en phase 7). */
+export type TransactionKind = 'mission' | 'aspect' | 'carac' | 'od' | 'module' | 'arme' | 'achat' | 'ajustement'
+
+/** Données restaurées par l'annulation d'une transaction. */
+export interface TransactionSnapshot {
+  aspects: Record<AspectId, number>
+  caracs: Record<CaracId, CaracValue>
+  modules: InstalledModule[]
+  armes: OwnedWeapon[]
+  progression: Omit<ProgressionState, 'historique'>
+}
+
+export interface Transaction {
+  id: string
+  /** Date ISO. */
+  at: string
+  kind: TransactionKind
+  libelle: string
+  /** Variations : PX actuels, PG disponibles, PG totaux gagnés. */
+  px: number
+  pg: number
+  pgTotal: number
+  /** Passage outre une règle (règle maison). */
+  outrepasse?: boolean
+  avant: TransactionSnapshot
+}
+
 export interface ProgressionState {
   pxActuel: number
   pxTotal: number
+  /** PG disponibles pour les achats. */
   pgSolde: number
-  /** Total de PG gagnés (ne baisse jamais) : débloque l'arsenal et les évolutions. */
+  /** PG gagnés depuis la création : ne baisse jamais (paliers, évolutions). */
   pgTotal: number
+  /** Aspects augmentés depuis la dernière fin de mission (une seule fois chacun). */
+  aspectsMission: AspectId[]
+  /** Transactions, la plus récente en premier. */
+  historique: Transaction[]
 }
 
 /** Personnage joueur. */
@@ -422,6 +453,29 @@ export interface RulesConfig {
     pointFaibleArrondi: 'sup' | 'inf'
     /** Nombre d'armes dans le rack. */
     rackMax: number
+  }
+  progression: {
+    pxFinMission: number
+    pxObjectif: number
+    pxPartieSup: number
+    pxSecondaire: number
+    pgObjectifMin: number
+    pgObjectifMax: number
+    pgSecondaire: number
+    pgHeroique: number
+    /** Coût d'un aspect = nouveau score × coutAspect. */
+    coutAspect: number
+    /** Coût d'une caractéristique = nouveau score × coutCarac. */
+    coutCarac: number
+    /** Coût de chaque niveau d'OD (niveau 1 à 5). */
+    coutOd: number[]
+    odMax: number
+    /** Niveau d'OD à partir duquel il compte comme rare. */
+    odNiveauRare: number
+    /** PG totaux requis par disponibilité. */
+    paliers: { avance: number; rare: number; prestige: number }
+    implant: number
+    therapie: number
   }
   derivees: {
     /** PS = santeBase + santeParPoint × caractéristique de Chair. */

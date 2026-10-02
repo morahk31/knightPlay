@@ -70,6 +70,28 @@ export const defaultRules: RulesConfig = {
     pointFaibleArrondi: 'sup',
     rackMax: 5,
   },
+  progression: {
+    // Fiche 07 (LdB p. 107)
+    pxFinMission: 5,
+    pxObjectif: 5,
+    pxPartieSup: 2,
+    pxSecondaire: 1,
+    pgObjectifMin: 10,
+    pgObjectifMax: 20,
+    pgSecondaire: 5,
+    pgHeroique: 5,
+    // Fiche 07 (LdB p. 108)
+    coutAspect: 5,
+    coutCarac: 2,
+    // Fiche 09 (LdB p. 442) : au-delà du niveau 2, un OD compte comme rare
+    coutOd: [10, 30, 50, 70, 100],
+    odMax: 5,
+    odNiveauRare: 3,
+    paliers: { avance: 100, rare: 300, prestige: 500 },
+    // LdB p. 91
+    implant: 20,
+    therapie: 100,
+  },
   derivees: {
     // Fiche 02, étape 9 (LdB p. 173-174)
     santeBase: 10,

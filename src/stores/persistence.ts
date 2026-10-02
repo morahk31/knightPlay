@@ -93,6 +93,11 @@ export function normalizeCharacter(raw: unknown): Character | null {
     Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
   const motivations = sheet.motivations as { majeure: string; mineures: unknown }
   motivations.mineures = strings(motivations.mineures)
+  const progression = sheet.progression as Record<string, unknown>
+  progression.aspectsMission = strings(progression.aspectsMission)
+  progression.historique = Array.isArray(progression.historique)
+    ? progression.historique.filter((t) => isRecord(t) && typeof t.id === 'string' && isRecord(t.avant))
+    : []
   const armes = Array.isArray(raw.armes)
     ? raw.armes.filter((w) => isRecord(w) && typeof w.uid === 'string' && typeof w.nom === 'string' && Array.isArray(w.profils))
     : []

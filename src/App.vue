@@ -12,6 +12,7 @@ import ModulesPanel from './components/sheet/ModulesPanel.vue'
 import WeaponsPanel from './components/sheet/WeaponsPanel.vue'
 import AttackPanel from './components/actions/AttackPanel.vue'
 import SoakPanel from './components/actions/SoakPanel.vue'
+import ProgressionPanel from './components/sheet/ProgressionPanel.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -68,6 +69,9 @@ const pendingBase = ref<CaracId | null>(null)
         </div>
         <div v-else-if="activeTab === 'armes'" class="tab-panel" role="tabpanel" data-testid="tab-armes">
           <WeaponsPanel />
+        </div>
+        <div v-else-if="activeTab === 'progression'" class="tab-panel" role="tabpanel" data-testid="tab-progression">
+          <ProgressionPanel />
         </div>
         <div v-else-if="activeTab === 'modules'" class="tab-panel" role="tabpanel" data-testid="tab-modules">
           <ModulesPanel />
