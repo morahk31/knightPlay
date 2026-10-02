@@ -9,6 +9,7 @@ Feuille de personnage et calculateur d'actions pour le jeu de rôle **Knight**. 
 - **Fiche :** identité et aspects, méta-armure, armes, modules, progression (PX, PG et historique annulable).
 - **Actions :** tests, attaque (toucher puis dégâts et violence), encaisser, modules et énergie, en dés virtuels ou avec vos propres dés. Tout est noté dans le journal.
 - **Arsenal de légende et Longbow :** châssis et arbres d'optimisations des armes de légende (liens, rareté, coûts), Longbow de la Ranger en version livre de base ou arsenal de légende, avec le coût en PE de chaque tir.
+- **Récap de partie :** le bouton **📋 Récap** ouvre une page de synthèse à garder sous les yeux (jauges, alertes, défenses, attaques prêtes à lancer, capacités et coûts en PE, overdrives, rappels de règles), imprimable.
 - **Règles maison :** le bouton **⚙ Règles** permet de changer chaque paramètre (coûts, arrondis, points contestés du référentiel…) et d'ajouter, corriger ou masquer des armes, modules, armures et effets. Ces réglages s'exportent à part (`*.knightplay-rules.json`).
 
 ## Développer

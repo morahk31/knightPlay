@@ -14,6 +14,7 @@ import AttackPanel from './components/actions/AttackPanel.vue'
 import SoakPanel from './components/actions/SoakPanel.vue'
 import ProgressionPanel from './components/sheet/ProgressionPanel.vue'
 import SettingsView from './components/SettingsView.vue'
+import RecapView from './components/RecapView.vue'
 import LogPanel from './components/LogPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
@@ -29,7 +30,7 @@ const sheetTabs = [
   { id: 'notes', label: 'Notes' },
 ] as const
 /** Fiche du personnage ou écran des règles maison. */
-const view = ref<'fiche' | 'regles'>('fiche')
+const view = ref<'fiche' | 'regles' | 'recap'>('fiche')
 const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
 
@@ -39,15 +40,18 @@ const pendingBase = ref<CaracId | null>(null)
 
 <template>
   <div class="app">
-    <TopBar @rules="view = view === 'regles' ? 'fiche' : 'regles'" />
+    <TopBar @rules="view = view === 'regles' ? 'fiche' : 'regles'" @recap="view = view === 'recap' ? 'fiche' : 'recap'" />
 
     <p v-if="store.storageWarning" class="banner warning" role="alert" data-testid="storage-warning">
       {{ store.storageWarning }}
     </p>
 
-    <GaugesBar />
+    <GaugesBar v-if="view !== 'recap'" />
 
-    <main v-if="view === 'regles'" class="settings-page">
+    <main v-if="view === 'recap'" class="recap-page">
+      <RecapView @close="view = 'fiche'" />
+    </main>
+    <main v-else-if="view === 'regles'" class="settings-page">
       <SettingsView @close="view = 'fiche'" />
     </main>
     <main v-else class="layout">

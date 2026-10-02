@@ -4,7 +4,7 @@ import { useCharactersStore } from '../stores/characters'
 import { downloadCharacter, parseCharacterFile } from '../services/fileIO'
 
 const store = useCharactersStore()
-const emit = defineEmits<{ rules: [] }>()
+const emit = defineEmits<{ rules: []; recap: [] }>()
 const fileInput = ref<HTMLInputElement | null>(null)
 const message = ref<{ kind: 'error' | 'info'; text: string } | null>(null)
 
@@ -77,7 +77,8 @@ async function onFileChosen(event: Event): Promise<void> {
       >
         Supprimer
       </button>
-      <button type="button" class="rules-btn" data-testid="btn-rules" @click="emit('rules')">⚙ Règles</button>
+      <button type="button" class="rules-btn recap-btn" data-testid="btn-recap" :disabled="!store.active" @click="emit('recap')">📋 Récap</button>
+      <button type="button" data-testid="btn-rules" @click="emit('rules')">⚙ Règles</button>
       <input
         ref="fileInput"
         type="file"

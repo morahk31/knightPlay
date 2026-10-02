@@ -1418,3 +1418,512 @@ button.warn {
 .attack-panel .longbow legend {
   color: var(--accent);
 }
+
+/* Page récapitulative */
+.recap-btn {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.recap-page {
+  padding: 1rem;
+}
+
+.recap {
+  --c-sante: #e5534b;
+  --c-armure: #9aa5b8;
+  --c-energie: #4fc3f7;
+  --c-espoir: #5ac17a;
+  --c-heroisme: #e0b45a;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.recap-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--gold);
+  border-radius: 10px;
+  background: linear-gradient(120deg, var(--surface) 60%, rgba(224, 180, 90, 0.08));
+}
+
+.recap-name {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.recap-alias {
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.recap-sub {
+  margin: 0.2rem 0 0.5rem;
+  color: var(--muted);
+}
+
+.recap-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.badge {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: var(--surface-2);
+}
+
+.badge.deployee {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.badge.repliee {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.badge.style {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.recap-quote {
+  margin: 0.6rem 0 0;
+  font-style: italic;
+  color: var(--text);
+}
+
+.recap-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.recap-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.recap-alert {
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border-left: 5px solid;
+  font-size: 0.95rem;
+}
+
+.recap-alert.danger {
+  border-color: var(--danger);
+  background: rgba(229, 83, 75, 0.15);
+}
+
+.recap-alert.warn {
+  border-color: var(--gold);
+  background: rgba(224, 180, 90, 0.13);
+}
+
+.recap-alert.info {
+  border-color: var(--accent);
+  background: rgba(79, 195, 247, 0.1);
+}
+
+.recap-alert strong {
+  margin-right: 0.4rem;
+}
+
+.recap-vitals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.vital {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.vital-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.vital-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.vital-value small {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.vital-note {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.vital-nods {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.vital-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.vital-bar span {
+  display: block;
+  height: 100%;
+  background: currentColor;
+}
+
+.vital-sante { border-top-color: var(--c-sante); color: var(--c-sante); }
+.vital-armure { border-top-color: var(--c-armure); color: var(--c-armure); }
+.vital-energie { border-top-color: var(--c-energie); color: var(--c-energie); }
+.vital-espoir { border-top-color: var(--c-espoir); color: var(--c-espoir); }
+.vital-heroisme { border-top-color: var(--c-heroisme); color: var(--c-heroisme); }
+
+.vital .vital-label,
+.vital .vital-value small {
+  color: var(--muted);
+}
+
+.vital.low {
+  background: rgba(229, 83, 75, 0.12);
+  animation: recap-pulse 2s ease-in-out infinite;
+}
+
+.vital.mid {
+  background: rgba(224, 180, 90, 0.08);
+}
+
+@keyframes recap-pulse {
+  50% { box-shadow: 0 0 0 3px rgba(229, 83, 75, 0.35); }
+}
+
+.vital.defense {
+  border-top-color: var(--accent);
+  color: var(--text);
+}
+
+.vital.defense .vital-value {
+  color: var(--accent);
+}
+
+.vital.small .vital-value {
+  font-size: 1.5rem;
+}
+
+.recap-block {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.recap-block h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  color: var(--gold);
+}
+
+.recap-block h4 {
+  margin: 0.8rem 0 0.3rem;
+}
+
+.recap-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1rem;
+}
+
+.attack-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.6rem;
+}
+
+.attack-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--danger);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.attack-card.distance {
+  border-left-color: var(--accent);
+}
+
+.attack-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.attack-roll {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.attack-roll .big {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.attack-roll .auto {
+  color: var(--gold);
+}
+
+.attack-roll small {
+  margin-left: 0.4rem;
+  color: var(--muted);
+}
+
+.attack-dmg {
+  font-size: 0.95rem;
+}
+
+.dmg-label {
+  display: inline-block;
+  min-width: 4.2rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.attack-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--accent);
+}
+
+.attack-effects {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.attack-base {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.recap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.recap-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0.3rem;
+}
+
+.recap-table td {
+  vertical-align: top;
+  padding: 0.35rem 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cap-pe {
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--c-energie);
+}
+
+.cap-effect {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.recap-aspects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.recap-aspect {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.recap-aspect-head {
+  display: flex;
+  justify-content: space-between;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.recap-carac {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+}
+
+.recap-carac.od strong {
+  color: var(--gold);
+}
+
+.recap-od,
+.recap-traits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.recap-od li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.od-effect {
+  color: var(--muted);
+}
+
+.recap-traits li {
+  padding: 0.3rem 0 0.3rem 0.6rem;
+  border-left: 3px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+
+.recap-traits li.plus { border-left-color: var(--ok); }
+.recap-traits li.minus { border-left-color: var(--danger); }
+.recap-traits li.major { border-left-color: var(--gold); }
+
+.recap-traits strong {
+  margin-right: 0.35rem;
+}
+
+.rules-memo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.6rem;
+}
+
+.rules-memo h3 {
+  grid-column: 1 / -1;
+}
+
+.memo {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 0.86rem;
+}
+
+.memo h4 {
+  margin: 0 0 0.25rem;
+  color: var(--accent);
+}
+
+.memo p {
+  margin: 0;
+}
+
+.memo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.7rem;
+}
+
+/* Impression : fond clair, sans la barre d'actions */
+@media print {
+  @page {
+    margin: 10mm;
+  }
+
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  .app,
+  .recap-page {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .topbar,
+  .gauges,
+  .recap-actions,
+  .banner {
+    display: none !important;
+  }
+
+  .recap-page {
+    padding: 0;
+  }
+
+  .recap {
+    --surface: #fff;
+    --surface-2: #f4f4f4;
+    --border: #bbb;
+    --text: #111;
+    --muted: #555;
+    --c-energie: #0b6fa4;
+    --c-espoir: #2a7d45;
+    --c-heroisme: #9a6b10;
+    --accent: #0b6fa4;
+    --gold: #8a5d00;
+    color: #111;
+  }
+
+  .recap-hero,
+  .vital,
+  .recap-block,
+  .attack-card,
+  .recap-alert {
+    background: #fff !important;
+    box-shadow: none !important;
+    animation: none !important;
+    break-inside: avoid;
+  }
+
+  .recap-block {
+    break-inside: auto;
+  }
+}
