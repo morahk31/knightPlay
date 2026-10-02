@@ -528,6 +528,13 @@ export const useCharactersStore = defineStore('characters', () => {
     })
   }
 
+  /** Notes libres du personnage. */
+  function setNotes(text: string): void {
+    mutateActive((c) => {
+      c.notes = text
+    })
+  }
+
   function setStyle(style: StyleId): void {
     mutateActive((c) => {
       c.combat.style = style
@@ -808,6 +815,7 @@ export const useCharactersStore = defineStore('characters', () => {
     toggleWeaponUpgrade,
     removeWeapon,
     setStyle,
+    setNotes,
     lastSoak,
     takeHit,
     undoSoak,

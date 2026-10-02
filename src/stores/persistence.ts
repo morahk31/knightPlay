@@ -118,6 +118,7 @@ export function normalizeCharacter(raw: unknown): Character | null {
     journal,
     modules,
     armes,
+    notes: typeof raw.notes === 'string' ? raw.notes : '',
     id,
     nom,
     createdAt,

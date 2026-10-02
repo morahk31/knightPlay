@@ -5,17 +5,14 @@ import GaugesBar from './components/GaugesBar.vue'
 import IdentityPanel from './components/sheet/IdentityPanel.vue'
 import AspectsPanel from './components/sheet/AspectsPanel.vue'
 import DerivedPanel from './components/sheet/DerivedPanel.vue'
-import TestPanel from './components/actions/TestPanel.vue'
-import EnergyPanel from './components/actions/EnergyPanel.vue'
 import ArmorPanel from './components/sheet/ArmorPanel.vue'
 import ModulesPanel from './components/sheet/ModulesPanel.vue'
 import WeaponsPanel from './components/sheet/WeaponsPanel.vue'
-import AttackPanel from './components/actions/AttackPanel.vue'
-import SoakPanel from './components/actions/SoakPanel.vue'
 import ProgressionPanel from './components/sheet/ProgressionPanel.vue'
 import SettingsView from './components/SettingsView.vue'
 import RecapView from './components/RecapView.vue'
-import LogPanel from './components/LogPanel.vue'
+import ActionsPanel from './components/ActionsPanel.vue'
+import NotesPanel from './components/sheet/NotesPanel.vue'
 import { useCharactersStore } from './stores/characters'
 import type { CaracId } from './rules/types'
 
@@ -36,6 +33,13 @@ const activeTab = ref<(typeof sheetTabs)[number]['id']>('identite')
 
 /** Caractéristique proposée comme base du prochain test (clic sur la fiche). */
 const pendingBase = ref<CaracId | null>(null)
+/** Compteur de clics : ouvre l'onglet Test même si la même caractéristique est choisie deux fois. */
+const pickSignal = ref(0)
+
+function pickCarac(carac: CaracId): void {
+  pendingBase.value = carac
+  pickSignal.value += 1
+}
 </script>
 
 <template>
@@ -80,7 +84,7 @@ const pendingBase = ref<CaracId | null>(null)
               </div>
             </div>
           </header>
-          <AspectsPanel @pick-carac="pendingBase = $event" />
+          <AspectsPanel @pick-carac="pickCarac" />
           <DerivedPanel />
           <IdentityPanel />
         </div>
@@ -96,19 +100,12 @@ const pendingBase = ref<CaracId | null>(null)
         <div v-else-if="activeTab === 'modules'" class="tab-panel" role="tabpanel" data-testid="tab-modules">
           <ModulesPanel />
         </div>
-        <div v-else class="tab-panel" role="tabpanel">
-          <h2>{{ store.active?.nom }}</h2>
-          <p class="placeholder">Contenu de l’onglet à venir.</p>
+        <div v-else class="tab-panel" role="tabpanel" data-testid="tab-notes">
+          <NotesPanel />
         </div>
       </section>
 
-      <aside class="actions-panel" aria-label="Actions" data-testid="zone-actions">
-        <TestPanel :pending-base="pendingBase" />
-        <AttackPanel />
-        <SoakPanel />
-        <EnergyPanel />
-        <LogPanel />
-      </aside>
+      <ActionsPanel :pending-base="pendingBase" :pick-signal="pickSignal" />
     </main>
   </div>
 </template>

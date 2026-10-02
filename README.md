@@ -6,7 +6,8 @@ Feuille de personnage et calculateur d'actions pour le jeu de rôle **Knight**. 
 
 - **Sans installation :** ouvrez `dist/index.html` par double-clic, après un build. Le fichier est autonome : il contient tout le JavaScript et le CSS.
 - **Sauvegarde :** les personnages sont sauvegardés automatiquement dans le navigateur. Utilisez **Exporter** pour en garder une copie (`*.knightplay.json`) et **Importer** pour la recharger, par exemple sur un autre navigateur.
-- **Fiche :** identité et aspects, méta-armure, armes, modules, progression (PX, PG et historique annulable).
+- **Fiche :** identité et aspects, méta-armure (silhouette des slots), armes, modules, progression (PX, PG et historique annulable), notes libres.
+- **Colonne d'actions :** onglets Test, Attaque, Encaisser, Énergie et Journal, toujours visibles pendant le défilement de la fiche.
 - **Actions :** tests, attaque (toucher puis dégâts et violence), encaisser, modules et énergie, en dés virtuels ou avec vos propres dés. Tout est noté dans le journal.
 - **Arsenal de légende et Longbow :** châssis et arbres d'optimisations des armes de légende (liens, rareté, coûts), Longbow de la Ranger en version livre de base ou arsenal de légende, avec le coût en PE de chaque tir.
 - **Récap de partie :** le bouton **📋 Récap** ouvre une page de synthèse à garder sous les yeux (jauges, alertes, défenses, attaques prêtes à lancer, capacités et coûts en PE, overdrives, rappels de règles), imprimable.

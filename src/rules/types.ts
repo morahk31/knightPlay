@@ -284,6 +284,8 @@ export interface Character {
   progression: ProgressionState
   armes: OwnedWeapon[]
   combat: CombatState
+  /** Notes libres du joueur (session, campagne). */
+  notes: string
 }
 
 // --- Armes et attaques (phase 5) ---
