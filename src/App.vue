@@ -70,6 +70,16 @@ const pendingBase = ref<CaracId | null>(null)
           </button>
         </nav>
         <div v-if="activeTab === 'identite'" class="tab-panel" role="tabpanel" data-testid="tab-identite">
+          <header v-if="store.active" class="sheet-header" data-testid="sheet-header">
+            <div class="sheet-header-id">
+              <div class="sheet-header-name">
+                {{ store.active.nom }}<span v-if="store.active.identite.surnom" class="sheet-header-alias"> « {{ store.active.identite.surnom }} »</span>
+              </div>
+              <div class="sheet-header-sub">
+                {{ [store.active.identite.archetype, store.active.identite.blason && `Blason ${store.active.identite.blason}`, store.active.armure.modele !== 'aucune' ? store.active.armure.nom : ''].filter(Boolean).join(' · ') || 'Fiche à compléter' }}
+              </div>
+            </div>
+          </header>
           <AspectsPanel @pick-carac="pendingBase = $event" />
           <DerivedPanel />
           <IdentityPanel />

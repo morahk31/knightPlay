@@ -227,6 +227,6 @@ describe('interface', () => {
     const store = setup()
     store.setArmorModel('rogue')
     const wrapper = mount(AspectsPanel)
-    expect(wrapper.get('[data-testid="carac-discretion-od-effectif"]').text()).toBe('=1')
+    expect(wrapper.get('[data-testid="carac-discretion-od-effectif"]').text()).toBe('OD 1')
   })
 })

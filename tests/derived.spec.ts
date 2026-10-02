@@ -238,7 +238,7 @@ describe('interface de la fiche', () => {
   it('cliquer sur une caractéristique la propose comme base de test', async () => {
     setup()
     const wrapper = mount(AspectsPanel)
-    await wrapper.get('[data-testid="carac-combat"] button').trigger('click')
+    await wrapper.get('[data-testid="carac-combat"]').trigger('click')
     expect(wrapper.emitted('pick-carac')?.[0]).toEqual(['combat'])
   })
 

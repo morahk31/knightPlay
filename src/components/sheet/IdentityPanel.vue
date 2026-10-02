@@ -94,74 +94,79 @@ const sectionInfo = computed(() => {
 })
 
 const lists: { field: ListField; label: string; datalist: string }[] = [
-  { field: 'mineures', label: 'Motivations mineures', datalist: 'dl-mineures' },
   { field: 'avantages', label: 'Avantages', datalist: 'dl-avantages' },
   { field: 'inconvenients', label: 'Inconvénients', datalist: 'dl-inconvenients' },
+  { field: 'mineures', label: 'Motivations mineures', datalist: 'dl-mineures' },
 ]
 </script>
 
 <template>
-  <section v-if="store.active" class="panel" aria-labelledby="identity-title">
-    <h3 id="identity-title">Identité</h3>
-    <div class="identity-grid">
-      <label>
-        Nom
-        <input
-          data-testid="identity-nom"
-          :value="store.active.nom"
-          @change="store.rename(store.active.id, text($event))"
-        />
-      </label>
-      <label>
-        Surnom
-        <input data-testid="identity-surnom" :value="store.active.identite.surnom" @change="setIdentity('surnom', text($event))" />
-      </label>
-      <label>
-        Archétype
-        <input list="dl-archetypes" data-testid="identity-archetype" :value="store.active.identite.archetype" @change="setIdentity('archetype', text($event))" />
-        <small v-if="archetypeBonus" class="hint">{{ archetypeBonus }}</small>
-      </label>
-      <label>
-        Haut fait
-        <input list="dl-hauts-faits" data-testid="identity-hautFait" :value="store.active.identite.hautFait" @change="setIdentity('hautFait', text($event))" />
-        <small v-if="hautFaitInfo" class="hint">{{ hautFaitInfo }}</small>
-      </label>
-      <label>
-        Blason
-        <input list="dl-blasons" data-testid="identity-blason" :value="store.active.identite.blason" @change="setIdentity('blason', text($event))" />
-      </label>
-      <label class="wide">
-        Vœu (motivation mineure du blason)
-        <input data-testid="identity-voeu" :value="store.active.identite.voeu" @change="setIdentity('voeu', text($event))" />
-      </label>
-      <label>
-        Section
-        <input list="dl-sections" data-testid="identity-section" :value="store.active.identite.section" @change="setIdentity('section', text($event))" />
-        <small v-if="sectionInfo" class="hint">{{ sectionInfo }}</small>
-      </label>
-      <label>
-        Âge
-        <input :value="store.active.identite.age" @change="setIdentity('age', text($event))" />
-      </label>
-      <label class="wide">
-        Motivation majeure
-        <input data-testid="motivation-majeure" :value="store.active.motivations.majeure" @change="setMajeure(text($event))" />
-      </label>
-      <label class="wide">
-        Description, historique
-        <textarea rows="2" :value="store.active.identite.description" @change="setIdentity('description', text($event))"></textarea>
-      </label>
+  <section v-if="store.active" class="panel identity" aria-labelledby="identity-title">
+    <div class="identity-columns">
+      <div class="identity-col">
+        <h3 id="identity-title">Identité</h3>
+        <div class="identity-grid">
+          <label>
+            Nom
+            <input data-testid="identity-nom" :value="store.active.nom" @change="store.rename(store.active.id, text($event))" />
+          </label>
+          <label>
+            Surnom
+            <input data-testid="identity-surnom" :value="store.active.identite.surnom" @change="setIdentity('surnom', text($event))" />
+          </label>
+          <label>
+            Archétype
+            <input list="dl-archetypes" data-testid="identity-archetype" :value="store.active.identite.archetype" @change="setIdentity('archetype', text($event))" />
+            <small v-if="archetypeBonus" class="hint">{{ archetypeBonus }}</small>
+          </label>
+          <label>
+            Haut fait
+            <input list="dl-hauts-faits" data-testid="identity-hautFait" :value="store.active.identite.hautFait" @change="setIdentity('hautFait', text($event))" />
+            <small v-if="hautFaitInfo" class="hint">{{ hautFaitInfo }}</small>
+          </label>
+          <label>
+            Blason
+            <input list="dl-blasons" data-testid="identity-blason" :value="store.active.identite.blason" @change="setIdentity('blason', text($event))" />
+          </label>
+          <label>
+            Section
+            <input list="dl-sections" data-testid="identity-section" :value="store.active.identite.section" @change="setIdentity('section', text($event))" />
+            <small v-if="sectionInfo" class="hint">{{ sectionInfo }}</small>
+          </label>
+          <label>
+            Âge
+            <input :value="store.active.identite.age" @change="setIdentity('age', text($event))" />
+          </label>
+          <label class="wide">
+            Vœu du blason
+            <input data-testid="identity-voeu" :value="store.active.identite.voeu" @change="setIdentity('voeu', text($event))" />
+          </label>
+        </div>
+      </div>
+      <div class="identity-col">
+        <h3>Histoire</h3>
+        <label class="identity-field major">
+          Motivation majeure
+          <input data-testid="motivation-majeure" :value="store.active.motivations.majeure" @change="setMajeure(text($event))" />
+        </label>
+        <label class="identity-field">
+          Description et historique
+          <textarea rows="7" class="autogrow" data-testid="identity-description" :value="store.active.identite.description"
+            @change="setIdentity('description', text($event))"></textarea>
+        </label>
+      </div>
     </div>
 
     <div class="lists">
-      <div v-for="list in lists" :key="list.field" class="list-editor" :data-testid="`list-${list.field}`">
+      <div v-for="list in lists" :key="list.field" class="list-editor" :class="list.field" :data-testid="`list-${list.field}`">
         <h4>{{ list.label }}</h4>
         <ul>
           <li v-for="(item, i) in listOf(list.field)" :key="i">
-            <span>{{ item }}</span>
-            <small v-if="list.field !== 'mineures' && effetOf(item)" class="hint">{{ effetOf(item) }}</small>
+            <span class="item-name">{{ item }}</span>
             <button type="button" class="ghost" :aria-label="`Retirer ${item}`" @click="removeItem(list.field, i)">✕</button>
+            <small v-if="list.field !== 'mineures' && effetOf(item)" class="hint">{{ effetOf(item) }}</small>
           </li>
+          <li v-if="!listOf(list.field).length" class="empty muted">Aucun.</li>
         </ul>
         <form class="add-row" @submit.prevent="addItem(list.field)">
           <input v-model="drafts[list.field]" :list="list.datalist" :data-testid="`list-${list.field}-input`" :placeholder="`Ajouter…`" />

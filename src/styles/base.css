@@ -271,112 +271,6 @@ button.link:hover {
   font-size: 0.95rem;
 }
 
-.aspects-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.aspect-col {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.5rem;
-  min-width: 0;
-}
-
-.aspect-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: var(--gold);
-  margin-bottom: 0.4rem;
-}
-
-.aspect-col input {
-  width: 2.2rem;
-  padding: 0.1rem 0.2rem;
-  text-align: center;
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.aspect-col input::-webkit-outer-spin-button,
-.aspect-col input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.carac-head,
-.carac-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 2.2rem 2.2rem 1.4rem;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.carac-head {
-  font-size: 0.7rem;
-  color: var(--muted);
-  text-align: center;
-  margin-bottom: 0.15rem;
-}
-
-.carac-row {
-  margin-bottom: 0.25rem;
-}
-
-.carac-name {
-  font-size: 0.88rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.aspect-col input.od {
-  color: var(--accent);
-}
-
-.warn,
-.warn .aspect-head {
-  color: var(--danger);
-}
-
-.warn input {
-  border-color: var(--danger);
-}
-
-.warnings {
-  margin: 0.6rem 0 0;
-  padding: 0;
-  list-style: none;
-  color: var(--danger);
-  font-size: 0.9rem;
-}
-
-.derived-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.derived-table th,
-.derived-table td {
-  padding: 0.3rem 0.5rem;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-.derived-table thead th {
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.derived-table input {
-  width: 4.5rem;
-}
-
 .badge {
   margin-left: 0.4rem;
   padding: 0.05rem 0.4rem;
@@ -397,79 +291,323 @@ button.link:hover {
   margin-top: 0.15rem;
 }
 
-.bonus-row {
+/* En-tête de la fiche (onglet Identité & Aspects) */
+.sheet-header {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 0.6rem;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
-.bonus-row input {
-  width: 4rem;
-  margin-left: 0.4rem;
+.sheet-header-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sheet-header-alias {
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.sheet-header-sub {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.panel-head h3 {
+  margin: 0;
+}
+
+.panel-head .hint {
+  display: inline;
+  margin: 0;
+}
+
+/* Aspects et caractéristiques : 3 cartes par ligne */
+.aspect-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.aspect-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  min-width: 0;
+}
+
+.aspect-card.warn {
+  border-color: var(--danger);
+}
+
+.aspect-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.aspect-name {
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  color: var(--gold);
+}
+
+.aspect-card.warn .aspect-name {
+  color: var(--danger);
+}
+
+.aspect-value {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.carac-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 3.4rem;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.carac-col {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.carac-name {
+  justify-self: start;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.carac-name.warn,
+.field-warn {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.od-input {
+  color: var(--accent);
+}
+
+.od-effective {
+  justify-self: center;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.od-effective.on {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.checks-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  border-style: dashed;
+  background: transparent;
+  font-size: var(--fs-sm);
+}
+
+.checks-card.warn {
+  border-style: solid;
+}
+
+.ok-text {
+  color: var(--ok);
+}
+
+.warnings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--danger);
+  font-size: var(--fs-sm);
+}
+
+/* Valeurs dérivées : tuiles */
+.derived-tiles {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.derived-tiles .stat-tile.manual {
+  border-color: var(--gold);
+}
+
+.derived-tiles .badge {
+  margin-left: 0;
+}
+
+.derived-edit summary {
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  color: var(--accent);
+}
+
+.derived-edit[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.derived-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.derived-edit select {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0.35rem;
+}
+
+.derived-computed {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+/* Identité et histoire : deux colonnes */
+.identity-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.identity-col h3 {
+  margin-bottom: var(--space-2);
 }
 
 .identity-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem 1rem;
+  gap: var(--space-2) var(--space-3);
 }
 
-.identity-grid label {
+.identity-grid label,
+.identity-field {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 
+.identity-field + .identity-field {
+  margin-top: var(--space-3);
+}
+
 .identity-grid input,
-.identity-grid textarea {
+.identity-field input,
+.identity-field textarea {
   color: var(--text);
   width: 100%;
 }
 
-.identity-grid textarea {
+.identity-field.major input {
+  border-color: var(--gold);
+}
+
+.identity-field textarea {
   font: inherit;
+  line-height: 1.45;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.7rem;
   resize: vertical;
+}
+
+/* La description s'agrandit avec son contenu (navigateurs récents), 7 lignes au minimum. */
+.autogrow {
+  field-sizing: content;
+  min-height: 10.5rem;
 }
 
 .identity-grid .wide {
   grid-column: 1 / -1;
 }
 
+/* Avantages, inconvénients, motivations mineures */
 .lists {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.list-editor h4 {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 .list-editor ul {
   list-style: none;
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--space-2);
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .list-editor li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.2rem 0.4rem;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--border);
+  gap: 0.1rem var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface-2);
+}
+
+.list-editor.avantages li { border-left-color: var(--ok); }
+.list-editor.inconvenients li { border-left-color: var(--danger); }
+.list-editor.mineures li { border-left-color: var(--gold); }
+
+.list-editor li.empty {
+  display: block;
+  background: transparent;
+  border-left-color: transparent;
+  padding-left: 0;
+}
+
+.list-editor .item-name {
+  font-weight: 600;
 }
 
 .list-editor li .hint {
-  grid-column: 1;
+  grid-column: 1 / -1;
   margin: 0;
 }
 
 .list-editor li button {
-  grid-column: 2;
-  grid-row: 1;
   padding: 0 0.4rem;
 }
 
@@ -735,11 +873,6 @@ button.small {
 .log-head time,
 .log-detail {
   color: var(--muted);
-}
-
-.od-effective {
-  font-size: 0.75rem;
-  color: var(--gold);
 }
 
 .gauge-guardian {

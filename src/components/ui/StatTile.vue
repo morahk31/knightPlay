@@ -7,8 +7,10 @@ withDefaults(
     note?: string
     /** Couleur d'accent : une couleur du thème ou une valeur CSS. */
     accent?: 'accent' | 'gold' | 'danger' | 'ok' | 'muted' | string
+    /** Identifiant de test de la valeur. */
+    valueTestid?: string
   }>(),
-  { note: undefined, accent: 'accent' },
+  { note: undefined, accent: 'accent', valueTestid: 'stat-tile-value' },
 )
 
 const THEME = ['accent', 'gold', 'danger', 'ok', 'muted']
@@ -17,7 +19,7 @@ const THEME = ['accent', 'gold', 'danger', 'ok', 'muted']
 <template>
   <div class="stat-tile" :style="{ '--tile-accent': THEME.includes(accent) ? `var(--${accent})` : accent }">
     <span class="stat-tile-label">{{ label }}</span>
-    <span class="stat-tile-value" data-testid="stat-tile-value">{{ value }}</span>
+    <span class="stat-tile-value" :data-testid="valueTestid">{{ value }}</span>
     <span v-if="note" class="stat-tile-note">{{ note }}</span>
     <div v-if="$slots.default" class="stat-tile-extra"><slot /></div>
   </div>
