@@ -1,6 +1,6 @@
 ---
 objective: "La partie modification de la fiche est lisible d'un coup d'œil, sans texte tronqué ni champ illisible, et chaque onglet met en avant ses informations clés."
-status: in-progress
+status: implemented
 ---
 
 # Plan: Améliorer l'affichage de la modification de la fiche
